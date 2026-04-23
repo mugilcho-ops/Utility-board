@@ -3,85 +3,82 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Utility Team Master v10.1</title>
+    <title>Utility Team Master v11</title>
     <style>
         :root { --posco-blue: #004b91; --bg: #f4f7fa; }
         body { font-family: 'Pretendard', sans-serif; background-color: var(--bg); margin: 0; padding-bottom: 60px; }
-        header { background-color: var(--posco-blue); color: white; padding: 1.2rem 2rem; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1001; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        header { background-color: var(--posco-blue); color: white; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1001; }
         
-        /* Layout & Spacing */
-        .calendar-section { max-width: 1600px; margin: 25px auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
-        .summary-container { max-width: 1600px; margin: 0 auto 25px; display: flex; gap: 20px; padding: 0 20px; }
-        .summary-box { flex: 1; background: #fffbe6; border: 1px solid #ffe58f; padding: 15px; border-radius: 10px; min-height: 100px; }
-        .container { display: flex; gap: 25px; padding: 0 20px; max-width: 1600px; margin: 0 auto; }
-        .column { flex: 1; display: flex; flex-direction: column; gap: 20px; }
+        .calendar-section { max-width: 1600px; margin: 20px auto; background: white; padding: 15px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        .summary-container { max-width: 1600px; margin: 0 auto 20px; display: flex; gap: 15px; padding: 0 20px; }
+        .summary-box { flex: 1; background: #fffbe6; border: 1px solid #ffe58f; padding: 12px; border-radius: 8px; }
+        .summary-title { font-weight: 800; color: #856404; margin-bottom: 8px; font-size: 0.85rem; border-bottom: 1px solid #ffe58f; padding-bottom: 4px; }
         
-        /* Typography */
-        .summary-title { font-weight: 800; color: #856404; margin-bottom: 10px; font-size: 0.9rem; border-bottom: 2px solid #ffe58f; padding-bottom: 6px; }
-        .column-header { background: #fff; padding: 15px; border-radius: 10px; text-align: center; font-weight: 800; color: var(--posco-blue); border-bottom: 4px solid var(--posco-blue); font-size: 1rem; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .container { display: flex; gap: 20px; padding: 0 20px; max-width: 1600px; margin: 0 auto; overflow-x: auto; }
+        .column { flex: 1; min-width: 300px; display: flex; flex-direction: column; gap: 15px; }
+        .column-header { background: #fff; padding: 10px; border-radius: 8px; text-align: center; font-weight: 800; color: var(--posco-blue); border-bottom: 3px solid var(--posco-blue); font-size: 0.9rem; }
         
-        /* Card & Input */
-        .eng-card { background: white; border-radius: 10px; padding: 18px; box-shadow: 0 3px 10px rgba(0,0,0,0.04); transition: transform 0.2s; }
-        .eng-card:hover { transform: translateY(-2px); }
+        .eng-card { background: white; border-radius: 8px; padding: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+        .color-common { border-left: 6px solid #555; }
         .color-0 { border-left: 6px solid #e74c3c; } .color-1 { border-left: 6px solid #f39c12; }
         .color-2 { border-left: 6px solid #27ae60; } .color-3 { border-left: 6px solid #2980b9; }
         .color-4 { border-left: 6px solid #8e44ad; }
 
-        .input-area { background: #f8f9fb; padding: 12px; border-radius: 8px; margin-bottom: 15px; display: flex; flex-direction: column; gap: 8px; }
-        .input-row { display: flex; gap: 6px; align-items: center; }
-        
-        /* 너비 조정 핵심 부분 */
-        select { width: 75px; padding: 5px; border: 1px solid #ddd; border-radius: 4px; font-size: 0.8rem; flex-shrink: 0; }
-        input[type="text"] { flex: 1; padding: 5px; border: 1px solid #ddd; border-radius: 4px; font-size: 0.8rem; }
-        .date-input-group { display: flex; align-items: center; gap: 4px; font-size: 0.75rem; color: #666; }
-        input[type="date"] { width: 105px; padding: 4px; border: 1px solid #ddd; border-radius: 4px; font-size: 0.75rem; }
-        
-        .add-btn { background: var(--posco-blue); color: white; padding: 8px; font-size: 0.8rem; cursor: pointer; border: none; border-radius: 4px; font-weight: bold; width: 100%; transition: background 0.2s; }
-        .add-btn:hover { background: #003669; }
+        .input-area { background: #f9fafb; padding: 10px; border-radius: 6px; margin-bottom: 10px; display: flex; flex-direction: column; gap: 6px; }
+        .input-row { display: flex; gap: 4px; align-items: center; }
+        select { width: 70px; padding: 4px; font-size: 0.75rem; border: 1px solid #ddd; }
+        input[type="text"] { flex: 1; padding: 4px; font-size: 0.75rem; border: 1px solid #ddd; }
+        input[type="date"] { width: 100px; padding: 3px; font-size: 0.7rem; border: 1px solid #ddd; }
+        .add-btn { background: var(--posco-blue); color: white; padding: 6px; font-size: 0.75rem; border: none; cursor: pointer; border-radius: 4px; font-weight: bold; }
 
-        /* Item Style */
-        .activity-item { padding: 10px; margin-bottom: 8px; background: #fff; border-radius: 6px; border: 1px solid #eee; box-shadow: 0 1px 3px rgba(0,0,0,0.02); }
-        .item-top { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
-        .tag { font-size: 0.65rem; padding: 2px 6px; border-radius: 4px; font-weight: bold; flex-shrink: 0; }
-        .tag-중요 { background: #fff1f0; color: #cf1322; border: 1px solid #ffa39e; }
-        .tag-일상 { background: #f6ffed; color: #389e0d; border: 1px solid #b7eb8f; }
-        .tag-회의 { background: #e6f7ff; color: #096dd9; border: 1px solid #91d5ff; }
-        .tag-이벤트 { background: #fff7e6; color: #d46b08; border: 1px solid #ffd591; }
-        .tag-휴가 { background: #f9f0ff; color: #722ed1; border: 1px solid #d3adf7; }
+        /* 슬림 리스트 스타일 */
+        .activity-item { display: flex; align-items: center; padding: 6px 8px; margin-bottom: 4px; background: #fff; border: 1px solid #eee; border-radius: 4px; gap: 10px; }
+        .activity-item.done { opacity: 0.5; background: #f0f0f0; }
         
-        .item-bottom { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #f0f0f0; pt: 6px; margin-top: 6px; }
-        .btn-sm { font-size: 0.65rem; padding: 3px 7px; cursor: pointer; border: none; border-radius: 4px; margin-left: 2px; }
+        .item-left-meta { display: flex; flex-direction: column; gap: 2px; width: 85px; flex-shrink: 0; }
+        .item-dates { font-size: 0.6rem; color: #777; white-space: nowrap; }
+        .item-btns { display: flex; gap: 2px; }
+        .btn-tiny { font-size: 0.55rem; padding: 1px 3px; cursor: pointer; border: none; border-radius: 2px; color: white; }
+
+        .item-center-content { flex: 1; display: flex; align-items: center; gap: 6px; min-width: 0; }
+        .tag { font-size: 0.6rem; padding: 1px 4px; border-radius: 3px; font-weight: bold; flex-shrink: 0; }
+        .tag-중요 { background: #fff1f0; color: #cf1322; } .tag-일상 { background: #f6ffed; color: #389e0d; }
+        .tag-회의 { background: #e6f7ff; color: #096dd9; } .tag-이벤트 { background: #fff7e6; color: #d46b08; }
+        .tag-휴가 { background: #f9f0ff; color: #722ed1; }
+        .content-text { font-size: 0.8rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+        .item-right-check { width: 30px; display: flex; justify-content: center; flex-shrink: 0; }
         
         /* Calendar UI */
-        .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; background: #eee; border: 1px solid #eee; }
-        .cal-cell { background: white; min-height: 90px; padding: 8px; }
-        .cal-event { padding: 2px 4px; border-radius: 3px; margin-top: 2px; font-size: 0.65rem; }
+        .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; background: #ddd; }
+        .cal-cell { background: white; min-height: 80px; padding: 5px; font-size: 0.65rem; }
+        .cal-event { padding: 1px 3px; border-radius: 2px; margin-top: 1px; color: white; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     </style>
 </head>
 <body>
 
 <header>
-    <div style="font-weight: 900; letter-spacing: 1px;">POSCO E&C <span style="font-weight: 300;">Utility Team Master v10.1</span></div>
-    <div id="clock" style="font-size: 0.85rem; font-family: monospace;"></div>
+    <div style="font-weight: 900;">POSCO E&C <span style="font-weight: 300;">Utility Team Master v11</span></div>
+    <div id="clock" style="font-size: 0.8rem;"></div>
 </header>
 
 <div class="calendar-section">
-    <div class="cal-header">
-        <button onclick="changeMonth(-1)" style="padding:5px 15px; cursor:pointer;">◀</button>
-        <span id="cal-month-title" style="font-size:1.2rem;"></span>
-        <button onclick="changeMonth(1)" style="padding:5px 15px; cursor:pointer;">▶</button>
+    <div class="cal-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+        <button onclick="changeMonth(-1)">◀</button>
+        <b id="cal-month-title"></b>
+        <button onclick="changeMonth(1)">▶</button>
     </div>
     <div class="cal-grid" id="cal-grid"></div>
 </div>
 
 <div class="summary-container">
     <div class="summary-box">
-        <div class="summary-title">🚩 This Week 주요 Activity (중요/이벤트)</div>
-        <div id="summary-this-box" style="font-size: 0.85rem;">불러오는 중...</div>
+        <div class="summary-title">🚩 This Week 주요 Activity</div>
+        <div id="sum-this" style="font-size:0.8rem;"></div>
     </div>
     <div class="summary-box" style="background:#e6f7ff; border-color:#91d5ff;">
-        <div class="summary-title" style="color:#0050b3; border-color:#91d5ff;">📅 Next Week 주요 Activity</div>
-        <div id="summary-next-box" style="font-size: 0.85rem; color:#0050b3;">불러오는 중...</div>
+        <div class="summary-title" style="color:#0050b3;">📅 Next Week 주요 Activity</div>
+        <div id="sum-next" style="font-size:0.8rem; color:#0050b3;"></div>
     </div>
 </div>
 
@@ -107,164 +104,139 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
-    const activitiesRef = ref(db, 'activities');
+    const actRef = ref(db, 'activities');
 
-    const managers = ["조갑수", "전해석", "박일경", "조래혁", "김형진"];
-    const mColors = ["#e74c3c", "#f39c12", "#27ae60", "#2980b9", "#8e44ad"];
-    const categories = ["중요", "일상", "회의", "이벤트", "휴가"];
-    
+    const managers = ["Utility 공통", "조갑수", "전해석", "박일경", "조래혁", "김형진"];
+    const mColors = ["#555555", "#e74c3c", "#f39c12", "#27ae60", "#2980b9", "#8e44ad"];
+    const cats = ["중요", "일상", "회의", "이벤트", "휴가"];
     let activities = [];
     let curDate = new Date();
 
     window.onload = () => {
         setWeekRanges();
-        renderPanels('left-panels', 'TW');
-        renderPanels('right-panels', 'NW');
-        onValue(activitiesRef, (snapshot) => {
-            const data = snapshot.val();
-            activities = data ? Object.keys(data).map(key => ({ id: key, ...data[key] })) : [];
+        renderColumns('left-panels', 'TW');
+        renderColumns('right-panels', 'NW');
+        onValue(actRef, (snap) => {
+            const data = snap.val();
+            activities = data ? Object.keys(data).map(k => ({ id: k, ...data[k] })) : [];
             refreshUI();
         });
     };
 
     function setWeekRanges() {
-        const now = new Date();
-        const day = now.getDay();
-        const monThis = new Date(now); monThis.setDate(now.getDate() - (day === 0 ? 6 : day - 1)); monThis.setHours(0,0,0,0);
-        const monNext = new Date(monThis); monNext.setDate(monThis.getDate() + 7);
+        const now = new Date(); const day = now.getDay();
+        const mon = new Date(now); mon.setDate(now.getDate() - (day === 0 ? 6 : day - 1)); mon.setHours(0,0,0,0);
         const f = (d) => `${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')}`;
-        document.getElementById('range-this').innerText = `${f(monThis)} ~ ${f(new Date(monThis.getTime() + 4*86400000))}`;
-        document.getElementById('range-next').innerText = `${f(monNext)} ~ ${f(new Date(monNext.getTime() + 4*86400000))}`;
+        document.getElementById('range-this').innerText = `${f(mon)} ~ ${f(new Date(mon.getTime() + 4*86400000))}`;
+        document.getElementById('range-next').innerText = `${f(new Date(mon.getTime() + 7*86400000))} ~ ${f(new Date(mon.getTime() + 11*86400000))}`;
     }
 
-    function renderPanels(containerId, prefix) {
-        const container = document.getElementById(containerId);
+    function renderColumns(targetId, prefix) {
+        const target = document.getElementById(targetId);
         managers.forEach((name, i) => {
-            const div = document.createElement('div');
-            div.className = `eng-card color-${i}`;
-            div.innerHTML = `
-                <h3 style="margin:0 0 12px 0; font-size:0.9rem; color:#333;">${name}</h3>
+            const card = document.createElement('div');
+            card.className = `eng-card ${i===0?'color-common':'color-'+(i-1)}`;
+            card.innerHTML = `
+                <div style="font-weight:800; font-size:0.8rem; margin-bottom:8px;">${name}</div>
                 <div class="input-area">
                     <div class="input-row">
-                        <select id="cat-${prefix}-${i}">${categories.map(c => `<option value="${c}">${c}</option>`).join('')}</select>
-                        <input type="text" id="txt-${prefix}-${i}" placeholder="업무 내용을 입력하세요">
+                        <select id="cat-${prefix}-${i}">${cats.map(c=>`<option value="${c}">${c}</option>`).join('')}</select>
+                        <input type="text" id="txt-${prefix}-${i}" placeholder="업무내용">
                     </div>
                     <div class="input-row">
-                        <div class="date-input-group">시작 <input type="date" id="start-${prefix}-${i}"></div>
-                        <div class="date-input-group">완료 <input type="date" id="end-${prefix}-${i}"></div>
+                        <input type="date" id="s-${prefix}-${i}"> ~ <input type="date" id="e-${prefix}-${i}">
+                        <button class="add-btn" onclick="addAct('${prefix}', ${i})" style="flex:1">등록</button>
                     </div>
-                    <button class="add-btn" onclick="addActivity('${prefix}', ${i})">Activity 등록</button>
                 </div>
                 <div id="list-${prefix}-${i}"></div>`;
-            container.appendChild(div);
+            target.appendChild(card);
         });
     }
 
-    window.addActivity = (prefix, idx) => {
-        const cat = document.getElementById(`cat-${prefix}-${idx}`).value;
-        const txt = document.getElementById(`txt-${prefix}-${idx}`).value;
-        const start = document.getElementById(`start-${prefix}-${idx}`).value;
-        const end = document.getElementById(`end-${prefix}-${idx}`).value;
-        if (!txt || !start || !end) { alert("모든 항목을 입력해주세요!"); return; }
-        
-        push(activitiesRef, { 
-            manager: managers[idx], category: cat, content: txt, 
-            startDate: start, dueDate: end, status: 'active', timestamp: Date.now() 
-        }).then(() => { 
-            document.getElementById(`txt-${prefix}-${idx}`).value = ""; 
-        });
+    window.addAct = (prefix, i) => {
+        const c = document.getElementById(`cat-${prefix}-${i}`).value;
+        const t = document.getElementById(`txt-${prefix}-${i}`).value;
+        const s = document.getElementById(`s-${prefix}-${i}`).value;
+        const e = document.getElementById(`e-${prefix}-${i}`).value;
+        if(!t || !s || !e) return alert("필드 입력 요망");
+        push(actRef, { manager: managers[i], category: c, content: t, startDate: s, dueDate: e, status: 'active', showOnCal: (c==='회의') });
+        document.getElementById(`txt-${prefix}-${i}`).value = "";
     };
 
     function refreshUI() {
-        document.querySelectorAll('[id^="list-"]').forEach(l => l.innerHTML = "");
-        let sumTW = "", sumNW = "";
-        
+        document.querySelectorAll('[id^="list-"]').forEach(el => el.innerHTML = "");
+        let sTW = "", sNW = "";
         const now = new Date(); now.setHours(0,0,0,0);
-        const day = now.getDay();
-        const monThis = new Date(now); monThis.setDate(now.getDate() - (day === 0 ? 6 : day - 1));
-        const sunThis = new Date(monThis); sunThis.setDate(monThis.getDate() + 6); sunThis.setHours(23,59,59,999);
-        const monNext = new Date(monThis); monNext.setDate(monThis.getDate() + 7);
-        const sunNext = new Date(monNext); sunNext.setDate(monNext.getDate() + 6); sunNext.setHours(23,59,59,999);
+        const monT = new Date(now); monT.setDate(now.getDate() - (now.getDay()===0?6:now.getDay()-1));
+        const monN = new Date(monT); monN.setDate(monT.getDate() + 7);
 
-        activities.sort((a,b) => new Date(a.startDate) - new Date(b.startDate)).forEach(act => {
-            const mIdx = managers.indexOf(act.manager);
-            const startD = new Date(act.startDate);
-            const endD = new Date(act.dueDate);
-
-            // 중요/이벤트 노출 로직 (이번 주/다음 주 분리)
-            if ((act.category === '중요' || act.category === '이벤트') && act.status === 'active') {
-                const itemHtml = `<div style="margin-bottom:5px; border-bottom:1px dashed #ddd; padding-bottom:3px;">
-                    <span class="tag tag-${act.category}">${act.category}</span> <b>[${act.manager}]</b> ${act.content} 
-                    <span style="font-size:0.7rem; color:#888;">(${act.startDate.slice(5)}~${act.dueDate.slice(5)})</span>
-                </div>`;
-                
-                // 이번 주에 걸쳐 있는가? (시작일이 이번주 일요일 이전이고, 종료일이 이번주 월요일 이후)
-                if (startD <= sunThis && endD >= monThis) sumTW += itemHtml;
-                // 다음 주에 걸쳐 있는가?
-                if (startD <= sunNext && endD >= monNext) sumNW += itemHtml;
+        activities.sort((a,b) => new Date(a.startDate) - new Date(b.startDate)).forEach(a => {
+            const mIdx = managers.indexOf(a.manager);
+            const start = new Date(a.startDate); const end = new Date(a.dueDate);
+            
+            if((a.category==='중요' || a.category==='이벤트') && a.status==='active') {
+                const html = `<div style="margin-bottom:3px;"><b>[${a.manager}]</b> ${a.content} (${a.startDate.slice(5)}~${a.dueDate.slice(5)})</div>`;
+                if(start <= new Date(monT.getTime()+6*86400000) && end >= monT) sTW += html;
+                if(start <= new Date(monN.getTime()+6*86400000) && end >= monN) sNW += html;
             }
-
-            // 하단 리스트 노출 (양쪽 주에 걸쳐 있으면 둘 다 표시)
-            if (startD <= sunThis && endD >= monThis) createItem('TW', mIdx, act);
-            if (startD <= sunNext && endD >= monNext) createItem('NW', mIdx, act);
+            if(start <= new Date(monT.getTime()+6*86400000) && end >= monT) createItem('TW', mIdx, a);
+            if(start <= new Date(monN.getTime()+6*86400000) && end >= monN) createItem('NW', mIdx, a);
         });
-
-        document.getElementById('summary-this-box').innerHTML = sumTW || "이번 주 주요 항목 없음";
-        document.getElementById('summary-next-box').innerHTML = sumNW || "다음 주 주요 항목 없음";
+        document.getElementById('sum-this').innerHTML = sTW || "항목 없음";
+        document.getElementById('sum-next').innerHTML = sNW || "항목 없음";
         renderCalendar();
     }
 
-    function createItem(prefix, mIdx, act) {
+    function createItem(prefix, mIdx, a) {
         const list = document.getElementById(`list-${prefix}-${mIdx}`);
         const item = document.createElement('div');
-        item.className = `activity-item ${act.status === 'done' ? 'done' : ''}`;
+        item.className = `activity-item ${a.status==='done'?'done':''}`;
         item.innerHTML = `
-            <div class="item-top">
-                <span class="tag tag-${act.category}">${act.category}</span>
-                <span class="item-content">${act.content}</span>
-            </div>
-            <div class="item-bottom">
-                <span style="font-size:0.7rem; color:#777;">${act.startDate.slice(5)} ~ ${act.dueDate.slice(5)}</span>
-                <div class="item-actions">
-                    <button class="btn-sm" style="background:#004b91; color:white;" onclick="editItem('${act.id}')">수정</button>
-                    <button class="btn-sm" style="background:#52c41a; color:white;" onclick="toggleStatus('${act.id}', '${act.status}')">${act.status==='done'?'복구':'완료'}</button>
-                    <button class="btn-sm" style="background:#ff4d4f; color:white;" onclick="deleteItem('${act.id}')">삭제</button>
+            <div class="item-left-meta">
+                <span class="item-dates">${a.startDate.slice(5)} ~ ${a.dueDate.slice(5)}</span>
+                <div class="item-btns">
+                    <button class="btn-tiny" style="background:#004b91" onclick="editDates('${a.id}')">수정</button>
+                    <button class="btn-tiny" style="background:#52c41a" onclick="toggleStatus('${a.id}','${a.status}')">완료</button>
+                    <button class="btn-tiny" style="background:#ff4d4f" onclick="delAct('${a.id}')">삭제</button>
                 </div>
+            </div>
+            <div class="item-center-content">
+                <span class="tag tag-${a.category}">${a.category}</span>
+                <span class="content-text" title="${a.content}">${a.content}</span>
+            </div>
+            <div class="item-right-check">
+                ${a.category==='중요' ? `<input type="checkbox" title="달력표기" ${a.showOnCal?'checked':''} onchange="toggleCal('${a.id}', this.checked)">` : ''}
             </div>`;
         list.appendChild(item);
     }
 
-    window.toggleStatus = (id, cur) => update(ref(db, `activities/${id}`), { status: cur === 'done' ? 'active' : 'done' });
-    window.deleteItem = (id) => { if(confirm("삭제하시겠습니까?")) remove(ref(db, `activities/${id}`)); };
-    window.editItem = (id) => {
-        const act = activities.find(a => a.id === id);
-        const nTxt = prompt("업무 내용 수정:", act.content);
-        const nS = prompt("시작일 (YYYY-MM-DD):", act.startDate);
-        const nE = prompt("완료일 (YYYY-MM-DD):", act.dueDate);
-        if(nTxt && nS && nE) update(ref(db, `activities/${id}`), { content: nTxt, startDate: nS, dueDate: nE });
+    window.editDates = (id) => {
+        const a = activities.find(x => x.id === id);
+        const s = prompt("새 시작일 (YYYY-MM-DD)", a.startDate);
+        const e = prompt("새 완료일 (YYYY-MM-DD)", a.dueDate);
+        if(s && e) update(ref(db, `activities/${id}`), { startDate: s, dueDate: e });
     };
+    window.toggleStatus = (id, s) => update(ref(db, `activities/${id}`), { status: s==='done'?'active':'done' });
+    window.delAct = (id) => confirm("삭제하시겠습니까?") && remove(ref(db, `activities/${id}`));
+    window.toggleCal = (id, chk) => update(ref(db, `activities/${id}`), { showOnCal: chk });
 
     function renderCalendar() {
         const grid = document.getElementById('cal-grid'); grid.innerHTML = "";
-        const labels = ["일","월","화","수","목","금","토"];
-        labels.forEach(l => grid.innerHTML += `<div style="background:#f8f9fa; padding:8px; text-align:center; font-size:0.8rem; font-weight:bold;">${l}</div>`);
-        
-        const year = curDate.getFullYear(); const month = curDate.getMonth();
-        document.getElementById('cal-month-title').innerText = `${year}.${String(month+1).padStart(2,'0')}`;
-        const firstDay = new Date(year, month, 1).getDay(); const lastDate = new Date(year, month + 1, 0).getDate();
-        
-        for(let i=0; i<firstDay; i++) grid.innerHTML += `<div class="cal-cell"></div>`;
-        for(let d=1; d<=lastDate; d++) {
-            const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-            let eventsHtml = "";
-            activities.filter(a => dateStr >= a.startDate && dateStr <= a.dueDate).forEach(a => {
-                eventsHtml += `<div class="cal-event" style="background:${mColors[managers.indexOf(a.manager)]}; color:white;">${a.manager}:${a.content}</div>`;
+        ["일","월","화","수","목","금","토"].forEach(l => grid.innerHTML += `<div style="text-align:center; padding:5px; font-weight:bold; font-size:0.75rem; background:#f0f0f0;">${l}</div>`);
+        const y = curDate.getFullYear(); const m = curDate.getMonth();
+        document.getElementById('cal-month-title').innerText = `${y}.${String(m+1).padStart(2,'0')}`;
+        const fDay = new Date(y, m, 1).getDay(); const lDate = new Date(y, m+1, 0).getDate();
+        for(let i=0; i<fDay; i++) grid.innerHTML += `<div class="cal-cell"></div>`;
+        for(let d=1; d<=lDate; d++) {
+            const ds = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+            let evs = "";
+            activities.filter(a => a.showOnCal && ds >= a.startDate && ds <= a.dueDate).forEach(a => {
+                evs += `<div class="cal-event" style="background:${mColors[managers.indexOf(a.manager)]}">${a.content}</div>`;
             });
-            grid.innerHTML += `<div class="cal-cell"><span style="font-weight:bold;">${d}</span>${eventsHtml}</div>`;
+            grid.innerHTML += `<div class="cal-cell"><b>${d}</b>${evs}</div>`;
         }
     }
-
-    window.changeMonth = (v) => { curDate.setMonth(curDate.getMonth() + v); refreshUI(); };
+    window.changeMonth = (v) => { curDate.setMonth(curDate.getMonth()+v); refreshUI(); };
     setInterval(() => { document.getElementById('clock').innerText = new Date().toLocaleString(); }, 1000);
 </script>
 </body>
