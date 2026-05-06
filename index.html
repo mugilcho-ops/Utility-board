@@ -3,91 +3,105 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Utility Team Master v11.3</title>
+    <title>Utility Team Master v11.4</title>
     <style>
         :root { --posco-blue: #004b91; --bg: #f4f7fa; }
         body { font-family: 'Pretendard', sans-serif; background-color: var(--bg); margin: 0; padding-bottom: 60px; }
         header { background-color: var(--posco-blue); color: white; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1001; }
 
-        /* Calendar Section */
         .calendar-section { max-width: 1600px; margin: 20px auto; background: white; padding: 15px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
         .summary-container { max-width: 1600px; margin: 0 auto 20px; display: flex; gap: 15px; padding: 0 20px; }
         .summary-box { flex: 1; background: #fffbe6; border: 1px solid #ffe58f; padding: 12px; border-radius: 8px; min-height: 80px; }
         .summary-title { font-weight: 800; color: #856404; margin-bottom: 8px; font-size: 0.85rem; border-bottom: 1px solid #ffe58f; padding-bottom: 4px; }
 
-        /* ── [수정2] 담당자별 이번주/다음주를 가로 나란히 ── */
         .container { max-width: 1600px; margin: 0 auto; padding: 0 20px; display: flex; flex-direction: column; gap: 12px; }
-
-        /* 각 담당자 행 */
         .person-row { display: flex; gap: 12px; align-items: flex-start; }
-        .person-label { width: 80px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
-        .person-label-inner { writing-mode: horizontal-tb; font-weight: 800; font-size: 0.8rem; color: white; padding: 6px 10px; border-radius: 6px; text-align: center; }
+        .person-label { width: 80px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; padding-top: 26px; }
+        .person-label-inner { font-weight: 800; font-size: 0.8rem; color: white; padding: 6px 10px; border-radius: 6px; text-align: center; }
 
-        /* 이번주/다음주 패널 */
         .week-panel { flex: 1; min-width: 0; }
         .week-header { font-size: 0.72rem; font-weight: 800; color: var(--posco-blue); border-bottom: 2px solid var(--posco-blue); padding-bottom: 4px; margin-bottom: 6px; }
         .week-header.next { color: #555; border-color: #555; }
 
         .eng-card { background: white; border-radius: 8px; padding: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
         .color-common { border-left: 6px solid #555; }
-        .color-0 { border-left: 6px solid #e74c3c; } .color-1 { border-left: 6px solid #f39c12; }
-        .color-2 { border-left: 6px solid #27ae60; } .color-3 { border-left: 6px solid #2980b9; }
+        .color-0 { border-left: 6px solid #e74c3c; }
+        .color-1 { border-left: 6px solid #f39c12; }
+        .color-2 { border-left: 6px solid #27ae60; }
+        .color-3 { border-left: 6px solid #2980b9; }
         .color-4 { border-left: 6px solid #8e44ad; }
 
         .input-area { background: #f9fafb; padding: 8px; border-radius: 6px; margin-bottom: 8px; display: flex; flex-direction: column; gap: 5px; }
         .input-row { display: flex; gap: 4px; align-items: center; font-size: 0.72rem; flex-wrap: wrap; }
         select, input[type="text"] { padding: 3px 4px; border: 1px solid #ddd; border-radius: 4px; font-size: 0.72rem; }
         input[type="date"] { padding: 3px; border: 1px solid #ddd; font-size: 0.68rem; border-radius: 4px; }
-        .add-btn { background: var(--posco-blue); color: white; padding: 5px 8px; font-size: 0.72rem; border: none; cursor: pointer; border-radius: 4px; font-weight: bold; }
+        .add-btn { background: var(--posco-blue); color: white; padding: 5px 8px; font-size: 0.72rem; border: none; cursor: pointer; border-radius: 4px; font-weight: bold; white-space: nowrap; }
 
-        /* ── [수정1] 회의 선택 시 시간/장소 추가 필드 ── */
         .meeting-extra { display: none; background: #eef4ff; border: 1px solid #b8cff5; border-radius: 4px; padding: 5px 8px; gap: 6px; align-items: center; flex-wrap: wrap; font-size: 0.72rem; }
         .meeting-extra.visible { display: flex; }
-        .meeting-extra label { color: #003a7a; font-weight: 700; }
+        .meeting-extra label { color: #003a7a; font-weight: 700; gap: 3px; display: flex; align-items: center; }
         .meeting-extra select { font-size: 0.72rem; padding: 3px 4px; }
 
-        .activity-item { display: flex; align-items: center; padding: 5px 7px; margin-bottom: 3px; background: #fff; border: 1px solid #eee; border-radius: 4px; gap: 8px; }
+        .activity-item { display: flex; align-items: flex-start; padding: 5px 7px; margin-bottom: 3px; background: #fff; border: 1px solid #eee; border-radius: 4px; gap: 8px; }
         .activity-item.done { opacity: 0.4; background: #f9f9f9; }
 
         .item-left-meta { display: flex; flex-direction: column; gap: 2px; width: 82px; flex-shrink: 0; }
         .item-dates { font-size: 0.58rem; color: #777; }
         .item-meeting-info { font-size: 0.58rem; color: #1a5bbf; font-weight: 600; }
-        .item-btns { display: flex; gap: 2px; }
-        .btn-tiny { font-size: 0.55rem; padding: 2px 4px; cursor: pointer; border: none; border-radius: 2px; color: white; }
+        .item-btns { display: flex; gap: 2px; margin-top: 2px; }
+        .btn-tiny { font-size: 0.55rem; padding: 2px 4px; cursor: pointer; border: none; border-radius: 2px; color: white; white-space: nowrap; }
 
-        .tag { font-size: 0.58rem; padding: 1px 4px; border-radius: 3px; font-weight: bold; flex-shrink: 0; }
-        .tag-중요 { background: #fff1f0; color: #cf1322; } .tag-회의 { background: #e6f7ff; color: #096dd9; }
-        .tag-이벤트 { background: #fff7e6; color: #d46b08; } .tag-일상 { background: #f6ffed; color: #389e0d; }
+        .tag { font-size: 0.58rem; padding: 1px 4px; border-radius: 3px; font-weight: bold; flex-shrink: 0; display: inline-block; }
+        .tag-중요 { background: #fff1f0; color: #cf1322; }
+        .tag-회의 { background: #e6f7ff; color: #096dd9; }
+        .tag-이벤트 { background: #fff7e6; color: #d46b08; }
+        .tag-일상 { background: #f6ffed; color: #389e0d; }
         .tag-휴가 { background: #f9f0ff; color: #531dab; }
 
-        .summary-item { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; border-bottom: 1px dashed #ddd; padding-bottom: 3px; }
+        .summary-item { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; border-bottom: 1px dashed #ddd; padding-bottom: 3px; font-size: 0.8rem; }
         .item-center-content { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
 
-        /* Calendar Grid */
         .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; background: #ddd; border: 1px solid #ddd; }
         .cal-cell { background: white; min-height: 85px; padding: 5px; box-sizing: border-box; }
         .cal-cell b { font-size: 0.75rem; margin-bottom: 4px; display: inline-block; }
         .cal-event { padding: 1px 4px; border-radius: 2px; margin-top: 1px; color: white; font-size: 0.65rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-        /* Modal */
-        #modal-overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1999; }
-        #edit-modal { display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); background:white; padding:20px; border-radius:10px; box-shadow:0 10px 30px rgba(0,0,0,0.2); z-index:2000; min-width:280px; }
-        #edit-modal label { font-size:0.85rem; }
-        #edit-modal input, #edit-modal select { padding: 4px; border: 1px solid #ddd; border-radius: 4px; font-size: 0.82rem; }
+        /* ── 수정 모달 ── */
+        #modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1999; }
+        #edit-modal {
+            display: none; position: fixed; top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            background: white; padding: 22px; border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            z-index: 2000; width: 360px; max-width: 95vw;
+            max-height: 90vh; overflow-y: auto;
+        }
+        .modal-field { display: flex; flex-direction: column; gap: 4px; }
+        .modal-field label { font-size: 0.78rem; font-weight: 700; color: #444; }
+        .modal-field input[type="text"],
+        .modal-field input[type="date"],
+        .modal-field select {
+            padding: 6px 8px; border: 1px solid #ddd; border-radius: 5px;
+            font-size: 0.82rem; width: 100%; box-sizing: border-box;
+        }
+        .modal-field input[type="text"]:focus,
+        .modal-field select:focus { border-color: var(--posco-blue); outline: none; }
+        .modal-section { background: #eef4ff; border: 1px solid #b8cff5; border-radius: 6px; padding: 10px; display: flex; flex-direction: column; gap: 8px; }
+        .modal-section-title { font-size: 0.75rem; font-weight: 800; color: #003a7a; margin-bottom: 2px; }
     </style>
 </head>
 <body>
 
 <header>
-    <div style="font-weight: 900;">POSCO E&C <span style="font-weight: 300;">Utility Team Master v11.3</span></div>
+    <div style="font-weight: 900;">POSCO E&C <span style="font-weight: 300;">Utility Team Master v11.4</span></div>
     <div id="clock" style="font-size: 0.8rem;"></div>
 </header>
 
 <div class="calendar-section">
-    <div class="cal-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-        <button onclick="changeMonth(-1)" style="cursor:pointer">◀</button>
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+        <button onclick="changeMonth(-1)" style="cursor:pointer; padding:4px 10px; border:1px solid #ddd; border-radius:4px; background:#fff;">◀</button>
         <b id="cal-month-title" style="font-size:1.1rem;"></b>
-        <button onclick="changeMonth(1)" style="cursor:pointer">▶</button>
+        <button onclick="changeMonth(1)" style="cursor:pointer; padding:4px 10px; border:1px solid #ddd; border-radius:4px; background:#fff;">▶</button>
     </div>
     <div class="cal-grid" id="cal-grid"></div>
 </div>
@@ -95,15 +109,14 @@
 <div class="summary-container">
     <div class="summary-box">
         <div class="summary-title">🚩 This Week 주요 Activity</div>
-        <div id="sum-this" style="font-size:0.8rem;"></div>
+        <div id="sum-this"></div>
     </div>
     <div class="summary-box" style="background:#e6f7ff; border-color:#91d5ff;">
         <div class="summary-title" style="color:#0050b3;">📅 Next Week 주요 Activity</div>
-        <div id="sum-next" style="font-size:0.8rem; color:#0050b3;"></div>
+        <div id="sum-next" style="color:#0050b3;"></div>
     </div>
 </div>
 
-<!-- 주간 범위 헤더 -->
 <div style="max-width:1600px; margin: 0 auto 6px; padding: 0 20px; display: flex; gap: 12px;">
     <div style="width:80px; flex-shrink:0;"></div>
     <div style="flex:1; font-weight:800; font-size:0.82rem; color:var(--posco-blue); text-align:center;">
@@ -114,43 +127,88 @@
     </div>
 </div>
 
-<!-- ── 담당자별 행 컨테이너 ── -->
 <div class="container" id="person-rows"></div>
 
+<!-- ── 수정 모달 ── -->
 <div id="modal-overlay" onclick="closeEdit()"></div>
 <div id="edit-modal">
-    <h3 style="margin-top:0; font-size:0.9rem; border-bottom:1px solid #eee; padding-bottom:10px;">📅 일정 수정</h3>
+    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:10px; margin-bottom:14px;">
+        <h3 style="margin:0; font-size:0.95rem; color:var(--posco-blue);">✏️ 일정 수정</h3>
+        <button onclick="closeEdit()" style="border:none; background:none; font-size:1.2rem; cursor:pointer; color:#888;">✕</button>
+    </div>
     <input type="hidden" id="edit-id">
-    <div style="display:flex; flex-direction:column; gap:10px; margin:12px 0; font-size:0.85rem;">
-        <div><label>시작일: <input type="date" id="edit-start"></label></div>
-        <div><label>종료일: <input type="date" id="edit-end"></label></div>
-        <div id="edit-meeting-fields" style="display:none; flex-direction:column; gap:8px; background:#eef4ff; padding:8px; border-radius:6px; border:1px solid #b8cff5;">
-            <div><label style="color:#003a7a; font-weight:700;">🕐 시작 시간:
-                <select id="edit-time" style="margin-left:6px;">
-                    <option value="">선택</option>
-                    <option value="08:00">08:00</option><option value="09:00">09:00</option>
-                    <option value="10:00">10:00</option><option value="11:00">11:00</option>
-                    <option value="12:00">12:00</option><option value="13:00">13:00</option>
-                    <option value="14:00">14:00</option><option value="15:00">15:00</option>
-                    <option value="16:00">16:00</option><option value="17:00">17:00</option>
-                </select>
-            </label></div>
-            <div><label style="color:#003a7a; font-weight:700;">📍 장소:
-                <select id="edit-place" style="margin-left:6px;">
-                    <option value="">선택</option>
-                    <option value="2대">2대</option><option value="2소1">2소1</option>
-                    <option value="2소2">2소2</option><option value="2소3">2소3</option>
-                    <option value="2소4">2소4</option><option value="2소5">2소5</option>
-                    <option value="2소6">2소6</option><option value="2휴게">2휴게</option>
-                    <option value="3층">3층</option><option value="4층">4층</option>
-                    <option value="5층">5층</option>
-                </select>
-            </label></div>
+    <input type="hidden" id="edit-category-hidden">
+
+    <div style="display:flex; flex-direction:column; gap:12px;">
+        <!-- 담당자 (읽기전용) -->
+        <div class="modal-field">
+            <label>👤 담당자</label>
+            <input type="text" id="edit-manager-display" readonly style="background:#f5f5f5; color:#888; cursor:default;">
+        </div>
+        <!-- 카테고리 -->
+        <div class="modal-field">
+            <label>🏷️ 카테고리</label>
+            <select id="edit-category" onchange="onEditCatChange()">
+                <option value="중요">중요</option>
+                <option value="일상">일상</option>
+                <option value="회의">회의</option>
+                <option value="이벤트">이벤트</option>
+                <option value="휴가">휴가</option>
+            </select>
+        </div>
+        <!-- 업무 내용 -->
+        <div class="modal-field">
+            <label>📝 업무 내용</label>
+            <input type="text" id="edit-content" placeholder="업무 내용을 입력하세요">
+        </div>
+        <!-- 날짜 -->
+        <div style="display:flex; gap:8px;">
+            <div class="modal-field" style="flex:1;">
+                <label>📅 시작일</label>
+                <input type="date" id="edit-start">
+            </div>
+            <div class="modal-field" style="flex:1;">
+                <label>📅 종료일</label>
+                <input type="date" id="edit-end">
+            </div>
+        </div>
+        <!-- 회의 전용 필드 -->
+        <div id="edit-meeting-fields" style="display:none;">
+            <div class="modal-section">
+                <div class="modal-section-title">🤝 회의 정보</div>
+                <div class="modal-field">
+                    <label>🕐 시작 시간</label>
+                    <select id="edit-time"></select>
+                </div>
+                <div class="modal-field">
+                    <label>📍 장소</label>
+                    <select id="edit-place">
+                        <option value="">선택</option>
+                        <option value="2대">2대</option>
+                        <option value="2소1">2소1</option>
+                        <option value="2소2">2소2</option>
+                        <option value="2소3">2소3</option>
+                        <option value="2소4">2소4</option>
+                        <option value="2소5">2소5</option>
+                        <option value="2소6">2소6</option>
+                        <option value="2휴게">2휴게</option>
+                        <option value="3층">3층</option>
+                        <option value="4층">4층</option>
+                        <option value="5층">5층</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        <!-- 캘린더 표시 여부 -->
+        <div style="display:flex; align-items:center; gap:8px; font-size:0.82rem;">
+            <input type="checkbox" id="edit-showCal" style="width:auto;">
+            <label for="edit-showCal" style="cursor:pointer;">📆 캘린더에 표시</label>
         </div>
     </div>
-    <div style="text-align:right; gap:8px; display:flex; justify-content:flex-end;">
-        <button onclick="closeEdit()" style="padding:5px 10px; cursor:pointer; border:1px solid #ddd; border-radius:4px;">취소</button>
-        <button onclick="saveEdit()" style="background:var(--posco-blue); color:white; border:none; padding:5px 12px; border-radius:4px; cursor:pointer;">저장</button>
+
+    <div style="text-align:right; margin-top:16px; display:flex; justify-content:flex-end; gap:8px;">
+        <button onclick="closeEdit()" style="padding:7px 14px; cursor:pointer; border:1px solid #ddd; border-radius:5px; background:#fff; font-size:0.82rem;">취소</button>
+        <button onclick="saveEdit()" style="background:var(--posco-blue); color:white; border:none; padding:7px 16px; border-radius:5px; cursor:pointer; font-size:0.82rem; font-weight:700;">저장</button>
     </div>
 </div>
 
@@ -174,62 +232,87 @@
     const actRef = ref(db, 'activities');
 
     const managers = ["Utility 공통", "조갑수", "전해석", "박일경", "조래혁", "김형진"];
-    const mColors = ["#555555", "#e74c3c", "#f39c12", "#27ae60", "#2980b9", "#8e44ad"];
-    const mBgColors = ["#555555", "#e74c3c", "#f39c12", "#27ae60", "#2980b9", "#8e44ad"];
-    const cats = ["중요", "일상", "회의", "이벤트", "휴가"];
-
-    // 회의 시간/장소 옵션
-    const meetingTimes = ["08:00","09:00","10:00","11:00","12:00","13:00","14:00","15:00","16:00","17:00"];
+    const mColors  = ["#555555", "#e74c3c", "#f39c12", "#27ae60", "#2980b9", "#8e44ad"];
+    const cats     = ["중요", "일상", "회의", "이벤트", "휴가"];
     const meetingPlaces = ["2대","2소1","2소2","2소3","2소4","2소5","2소6","2휴게","3층","4층","5층"];
+
+    // ── [수정2] 시간 옵션: 08:00 ~ 18:00, 30분 단위 ──
+    function buildTimeOptions() {
+        const opts = ['<option value="">선택</option>'];
+        for (let h = 8; h <= 18; h++) {
+            for (let m = 0; m < 60; m += 30) {
+                if (h === 18 && m > 0) break;
+                const label = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+                opts.push(`<option value="${label}">${label}</option>`);
+            }
+        }
+        return opts.join('');
+    }
+    const TIME_OPTIONS_HTML = buildTimeOptions();
 
     let activities = [];
     let curDate = new Date();
 
+    // ── [수정1] 날짜 비교는 문자열로(timezone 오류 방지) ──
+    function getWeekRange(offsetWeeks = 0) {
+        const now = new Date();
+        const day = now.getDay(); // 0=일
+        const diffToMon = day === 0 ? -6 : 1 - day;
+        const mon = new Date(now);
+        mon.setDate(now.getDate() + diffToMon + offsetWeeks * 7);
+        mon.setHours(0, 0, 0, 0);
+        const fri = new Date(mon); fri.setDate(mon.getDate() + 4);
+        const sun = new Date(mon); sun.setDate(mon.getDate() + 6);
+        const toStr = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+        const toLabel = d => `${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')}`;
+        return { monStr: toStr(mon), sunStr: toStr(sun), label: `${toLabel(mon)} ~ ${toLabel(fri)}` };
+    }
+
+    // 날짜 문자열 범위 겹침 검사 (YYYY-MM-DD 문자열 비교)
+    function overlaps(aStart, aEnd, bStart, bEnd) {
+        return aStart <= bEnd && aEnd >= bStart;
+    }
+
     window.onload = () => {
-        setWeekRanges();
+        const tw = getWeekRange(0);
+        const nw = getWeekRange(1);
+        document.getElementById('range-this').innerText = tw.label;
+        document.getElementById('range-next').innerText = nw.label;
+
+        // 모달 시간 옵션 주입
+        document.getElementById('edit-time').innerHTML = TIME_OPTIONS_HTML;
+
         renderPersonRows();
         onValue(actRef, (snap) => {
             const data = snap.val();
+            // ── [수정1] Firebase에서 받은 데이터를 그대로 유지 (삭제 없음) ──
             activities = data ? Object.keys(data).map(k => ({ id: k, ...data[k] })) : [];
             refreshUI();
         });
     };
 
-    function setWeekRanges() {
-        const now = new Date(); const day = now.getDay();
-        const mon = new Date(now); mon.setDate(now.getDate() - (day === 0 ? 6 : day - 1)); mon.setHours(0,0,0,0);
-        const f = (d) => `${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')}`;
-        document.getElementById('range-this').innerText = `${f(mon)} ~ ${f(new Date(mon.getTime() + 4*86400000))}`;
-        document.getElementById('range-next').innerText = `${f(new Date(mon.getTime() + 7*86400000))} ~ ${f(new Date(mon.getTime() + 11*86400000))}`;
-    }
-
-    // ── [수정2] 담당자별 행: 이번주 + 다음주 카드를 flex row로 나란히 ──
+    // ── 담당자별 행 렌더링 ──
     function renderPersonRows() {
         const container = document.getElementById('person-rows');
         managers.forEach((name, i) => {
             const row = document.createElement('div');
             row.className = 'person-row';
 
-            // 담당자 레이블
-            const labelDiv = document.createElement('div');
-            labelDiv.className = 'person-label';
-            labelDiv.innerHTML = `<div class="person-label-inner" style="background:${mBgColors[i]}">${name}</div>`;
+            const label = document.createElement('div');
+            label.className = 'person-label';
+            label.innerHTML = `<div class="person-label-inner" style="background:${mColors[i]}">${name}</div>`;
 
-            // 이번주 패널
             const twPanel = document.createElement('div');
             twPanel.className = 'week-panel';
             twPanel.innerHTML = `<div class="week-header">이번 주</div>`;
-            const twCard = createCard(i, 'TW');
-            twPanel.appendChild(twCard);
+            twPanel.appendChild(createCard(i, 'TW'));
 
-            // 다음주 패널
             const nwPanel = document.createElement('div');
             nwPanel.className = 'week-panel';
             nwPanel.innerHTML = `<div class="week-header next">다음 주</div>`;
-            const nwCard = createCard(i, 'NW');
-            nwPanel.appendChild(nwCard);
+            nwPanel.appendChild(createCard(i, 'NW'));
 
-            row.appendChild(labelDiv);
+            row.appendChild(label);
             row.appendChild(twPanel);
             row.appendChild(nwPanel);
             container.appendChild(row);
@@ -240,12 +323,7 @@
         const colorClass = i === 0 ? 'color-common' : `color-${i-1}`;
         const card = document.createElement('div');
         card.className = `eng-card ${colorClass}`;
-
-        // 회의 시간 옵션 HTML
-        const timeOpts = meetingTimes.map(t => `<option value="${t}">${t}</option>`).join('');
-        // 회의 장소 옵션 HTML
         const placeOpts = meetingPlaces.map(p => `<option value="${p}">${p}</option>`).join('');
-
         card.innerHTML = `
             <div class="input-area">
                 <div class="input-row">
@@ -254,18 +332,15 @@
                     </select>
                     <input type="text" id="txt-${prefix}-${i}" placeholder="업무내용" style="flex:1; min-width:80px;">
                 </div>
-                <!-- [수정1] 회의 선택 시 시간/장소 추가 필드 -->
                 <div class="meeting-extra input-row" id="meet-${prefix}-${i}">
-                    <label>🕐 시작시간
-                        <select id="mtime-${prefix}-${i}">
-                            <option value="">선택</option>
-                            ${timeOpts}
-                        </select>
+                    <label style="display:flex; align-items:center; gap:3px; color:#003a7a; font-weight:700;">
+                        🕐 시작시간
+                        <select id="mtime-${prefix}-${i}" style="font-size:0.72rem; padding:3px 4px;">${TIME_OPTIONS_HTML}</select>
                     </label>
-                    <label>📍 장소
-                        <select id="mplace-${prefix}-${i}">
-                            <option value="">선택</option>
-                            ${placeOpts}
+                    <label style="display:flex; align-items:center; gap:3px; color:#003a7a; font-weight:700;">
+                        📍 장소
+                        <select id="mplace-${prefix}-${i}" style="font-size:0.72rem; padding:3px 4px;">
+                            <option value="">선택</option>${placeOpts}
                         </select>
                     </label>
                 </div>
@@ -279,75 +354,90 @@
         return card;
     }
 
-    // ── [수정1] 카테고리 변경 시 회의 필드 토글 ──
     window.toggleMeetingExtra = (prefix, i) => {
         const cat = document.getElementById(`cat-${prefix}-${i}`).value;
-        const el = document.getElementById(`meet-${prefix}-${i}`);
-        if (cat === '회의') {
-            el.classList.add('visible');
-        } else {
-            el.classList.remove('visible');
-        }
+        document.getElementById(`meet-${prefix}-${i}`)[cat === '회의' ? 'classList' : 'classList'][cat === '회의' ? 'add' : 'remove']('visible');
     };
 
     window.addAct = (prefix, i) => {
         const c = document.getElementById(`cat-${prefix}-${i}`).value;
-        const t = document.getElementById(`txt-${prefix}-${i}`).value;
+        const t = document.getElementById(`txt-${prefix}-${i}`).value.trim();
         const s = document.getElementById(`s-${prefix}-${i}`).value;
         const e = document.getElementById(`e-${prefix}-${i}`).value;
-        if (!t || !s || !e) return alert("내용과 날짜를 확인하세요!");
+        if (!t || !s || !e) { alert("내용과 날짜를 모두 입력하세요!"); return; }
 
         const payload = {
             manager: managers[i], category: c, content: t,
             startDate: s, dueDate: e, status: 'active',
-            showOnCal: (c === '회의' || c === '이벤트')
+            showOnCal: (c === '회의' || c === '이벤트'),
+            createdAt: new Date().toISOString()   // [수정1] 생성 시각 저장
         };
-
-        // 회의인 경우 시간/장소 저장
         if (c === '회의') {
             const mt = document.getElementById(`mtime-${prefix}-${i}`).value;
             const mp = document.getElementById(`mplace-${prefix}-${i}`).value;
-            if (mt) payload.meetingTime = mt;
+            if (mt) payload.meetingTime  = mt;
             if (mp) payload.meetingPlace = mp;
         }
-
         push(actRef, payload);
-        document.getElementById(`txt-${prefix}-${i}`).value = "";
-        // 회의 필드 초기화
+
+        // 입력 초기화
+        document.getElementById(`txt-${prefix}-${i}`).value = '';
+        document.getElementById(`s-${prefix}-${i}`).value   = '';
+        document.getElementById(`e-${prefix}-${i}`).value   = '';
         document.getElementById(`meet-${prefix}-${i}`).classList.remove('visible');
         document.getElementById(`cat-${prefix}-${i}`).value = '중요';
     };
 
+    // ── refreshUI: 이번주/다음주에 속하는 것만 카드에 표시, 요약 갱신 ──
     function refreshUI() {
-        document.querySelectorAll('[id^="list-"]').forEach(el => el.innerHTML = "");
-        let sTW = "", sNW = "";
-        const now = new Date(); now.setHours(0,0,0,0);
-        const monT = new Date(now); monT.setDate(now.getDate() - (now.getDay()===0?6:now.getDay()-1));
-        const monN = new Date(monT); monN.setDate(monT.getDate() + 7);
+        document.querySelectorAll('[id^="list-"]').forEach(el => el.innerHTML = '');
+        const tw = getWeekRange(0);
+        const nw = getWeekRange(1);
+        let sTW = '', sNW = '';
 
-        activities.sort((a,b) => new Date(a.startDate) - new Date(b.startDate)).forEach(a => {
-            const mIdx = managers.indexOf(a.manager);
-            const start = new Date(a.startDate); const end = new Date(a.dueDate);
+        activities
+            .slice()
+            .sort((a, b) => (a.startDate || '').localeCompare(b.startDate || ''))
+            .forEach(a => {
+                if (!a.manager || !a.startDate || !a.dueDate) return;
+                const mIdx = managers.indexOf(a.manager);
+                if (mIdx < 0) return;
 
-            if ((a.category==='중요' || a.category==='이벤트' || a.category==='회의') && a.status==='active') {
-                const html = `<div class="summary-item"><span><span class="tag tag-${a.category}">${a.category}</span> <b>[${a.manager}]</b> ${a.content}${a.meetingTime?` ⏰${a.meetingTime}`:''}${a.meetingPlace?` 📍${a.meetingPlace}`:''}</span><input type="checkbox" ${a.showOnCal?'checked':''} onchange="toggleCal('${a.id}', this.checked)"></div>`;
-                if (start <= new Date(monT.getTime()+6*86400000) && end >= monT) sTW += html;
-                if (start <= new Date(monN.getTime()+6*86400000) && end >= monN) sNW += html;
-            }
-            if (start <= new Date(monT.getTime()+6*86400000) && end >= monT) createItem('TW', mIdx, a);
-            if (start <= new Date(monN.getTime()+6*86400000) && end >= monN) createItem('NW', mIdx, a);
-        });
-        document.getElementById('sum-this').innerHTML = sTW || "주요 일정 없음";
-        document.getElementById('sum-next').innerHTML = sNW || "주요 일정 없음";
+                const inTW = overlaps(a.startDate, a.dueDate, tw.monStr, tw.sunStr);
+                const inNW = overlaps(a.startDate, a.dueDate, nw.monStr, nw.sunStr);
+
+                // 요약 박스 (중요/이벤트/회의 & active)
+                if (['중요','이벤트','회의'].includes(a.category) && a.status === 'active') {
+                    const html = `<div class="summary-item">
+                        <span>
+                            <span class="tag tag-${a.category}">${a.category}</span>
+                            <b>[${a.manager}]</b> ${a.content}
+                            ${a.meetingTime  ? ` ⏰${a.meetingTime}`  : ''}
+                            ${a.meetingPlace ? ` 📍${a.meetingPlace}` : ''}
+                        </span>
+                        <input type="checkbox" ${a.showOnCal ? 'checked' : ''} onchange="toggleCal('${a.id}', this.checked)">
+                    </div>`;
+                    if (inTW) sTW += html;
+                    if (inNW) sNW += html;
+                }
+
+                if (inTW) createItem('TW', mIdx, a);
+                if (inNW) createItem('NW', mIdx, a);
+            });
+
+        document.getElementById('sum-this').innerHTML = sTW || '<span style="color:#aaa">주요 일정 없음</span>';
+        document.getElementById('sum-next').innerHTML = sNW || '<span style="color:#aaa">주요 일정 없음</span>';
         renderCalendar();
     }
 
     function createItem(prefix, mIdx, a) {
-        const item = document.createElement('div');
-        item.className = `activity-item ${a.status==='done'?'done':''}`;
-        const meetInfo = (a.category==='회의' && (a.meetingTime || a.meetingPlace))
-            ? `<span class="item-meeting-info">${a.meetingTime?`⏰${a.meetingTime} `:''}${a.meetingPlace?`📍${a.meetingPlace}`:''}</span>`
+        const el = document.getElementById(`list-${prefix}-${mIdx}`);
+        if (!el) return;
+        const meetInfo = (a.category === '회의' && (a.meetingTime || a.meetingPlace))
+            ? `<span class="item-meeting-info">${a.meetingTime ? `⏰${a.meetingTime} ` : ''}${a.meetingPlace ? `📍${a.meetingPlace}` : ''}</span>`
             : '';
+        const item = document.createElement('div');
+        item.className = `activity-item ${a.status === 'done' ? 'done' : ''}`;
         item.innerHTML = `
             <div class="item-left-meta">
                 <span class="item-dates">${a.startDate.slice(5)}~${a.dueDate.slice(5)}</span>
@@ -362,73 +452,103 @@
                 <span class="tag tag-${a.category}">${a.category}</span>
                 <span style="font-size:0.78rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${a.content}">${a.content}</span>
             </div>`;
-        const listEl = document.getElementById(`list-${prefix}-${mIdx}`);
-        if (listEl) listEl.appendChild(item);
+        el.appendChild(item);
     }
 
-    // ── 수정 모달: 회의 시 시간/장소 표시 ──
+    // ── [수정3] 수정 모달: 내용·카테고리·날짜·시간·장소 모두 수정 가능 ──
     window.openEdit = (id) => {
         const a = activities.find(x => x.id === id);
-        document.getElementById('edit-id').value = id;
-        document.getElementById('edit-start').value = a.startDate;
-        document.getElementById('edit-end').value = a.dueDate;
+        if (!a) return;
+        document.getElementById('edit-id').value              = id;
+        document.getElementById('edit-category-hidden').value = a.category;
+        document.getElementById('edit-manager-display').value = a.manager;
+        document.getElementById('edit-category').value        = a.category;
+        document.getElementById('edit-content').value         = a.content;
+        document.getElementById('edit-start').value           = a.startDate;
+        document.getElementById('edit-end').value             = a.dueDate;
+        document.getElementById('edit-showCal').checked       = !!a.showOnCal;
 
         const meetFields = document.getElementById('edit-meeting-fields');
         if (a.category === '회의') {
-            meetFields.style.display = 'flex';
-            document.getElementById('edit-time').value = a.meetingTime || '';
+            meetFields.style.display = 'block';
+            document.getElementById('edit-time').value  = a.meetingTime  || '';
             document.getElementById('edit-place').value = a.meetingPlace || '';
         } else {
             meetFields.style.display = 'none';
         }
-        document.getElementById('edit-modal').style.display = 'block';
+
+        document.getElementById('edit-modal').style.display   = 'block';
         document.getElementById('modal-overlay').style.display = 'block';
     };
 
+    // 수정 모달에서 카테고리 변경 시 회의 필드 토글
+    window.onEditCatChange = () => {
+        const cat = document.getElementById('edit-category').value;
+        document.getElementById('edit-meeting-fields').style.display = (cat === '회의') ? 'block' : 'none';
+    };
+
     window.closeEdit = () => {
-        document.getElementById('edit-modal').style.display = 'none';
+        document.getElementById('edit-modal').style.display    = 'none';
         document.getElementById('modal-overlay').style.display = 'none';
     };
 
     window.saveEdit = () => {
-        const id = document.getElementById('edit-id').value;
-        const a = activities.find(x => x.id === id);
+        const id  = document.getElementById('edit-id').value;
+        const cat = document.getElementById('edit-category').value;
         const updates = {
+            category:  cat,
+            content:   document.getElementById('edit-content').value.trim(),
             startDate: document.getElementById('edit-start').value,
-            dueDate: document.getElementById('edit-end').value
+            dueDate:   document.getElementById('edit-end').value,
+            showOnCal: document.getElementById('edit-showCal').checked
         };
-        if (a && a.category === '회의') {
-            updates.meetingTime = document.getElementById('edit-time').value;
+        if (!updates.content || !updates.startDate || !updates.dueDate) {
+            alert("내용과 날짜를 모두 입력하세요!"); return;
+        }
+        if (cat === '회의') {
+            updates.meetingTime  = document.getElementById('edit-time').value;
             updates.meetingPlace = document.getElementById('edit-place').value;
+        } else {
+            // 회의 아닌 경우 기존 회의 정보 초기화
+            updates.meetingTime  = null;
+            updates.meetingPlace = null;
         }
         update(ref(db, `activities/${id}`), updates);
         closeEdit();
     };
 
-    window.toggleStat = (id, s) => update(ref(db, `activities/${id}`), { status: s==='done'?'active':'done' });
-    window.delAct = (id) => confirm("삭제할까요?") && remove(ref(db, `activities/${id}`));
-    window.toggleCal = (id, chk) => update(ref(db, `activities/${id}`), { showOnCal: chk });
+    window.toggleStat = (id, s) => update(ref(db, `activities/${id}`), { status: s === 'done' ? 'active' : 'done' });
+    window.delAct     = (id) => { if (confirm("이 일정을 삭제할까요?")) remove(ref(db, `activities/${id}`)); };
+    window.toggleCal  = (id, chk) => update(ref(db, `activities/${id}`), { showOnCal: chk });
 
+    // ── 캘린더 렌더링 ──
     function renderCalendar() {
-        const grid = document.getElementById('cal-grid'); grid.innerHTML = "";
-        ["일","월","화","수","목","금","토"].forEach(l => grid.innerHTML += `<div style="text-align:center; padding:5px; font-weight:bold; font-size:0.75rem; background:#f0f0f0;">${l}</div>`);
+        const grid = document.getElementById('cal-grid');
+        grid.innerHTML = '';
+        ['일','월','화','수','목','금','토'].forEach(l => {
+            grid.innerHTML += `<div style="text-align:center; padding:5px; font-weight:bold; font-size:0.75rem; background:#f0f0f0;">${l}</div>`;
+        });
         const y = curDate.getFullYear(), m = curDate.getMonth();
         document.getElementById('cal-month-title').innerText = `${y}.${String(m+1).padStart(2,'0')}`;
-        const fDay = new Date(y, m, 1).getDay(), lDate = new Date(y, m+1, 0).getDate();
-        for (let i=0; i<fDay; i++) grid.innerHTML += `<div class="cal-cell"></div>`;
-        for (let d=1; d<=lDate; d++) {
+        const fDay  = new Date(y, m, 1).getDay();
+        const lDate = new Date(y, m+1, 0).getDate();
+        for (let i = 0; i < fDay; i++) grid.innerHTML += `<div class="cal-cell"></div>`;
+        for (let d = 1; d <= lDate; d++) {
             const ds = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-            let evs = "";
-            activities.filter(a => a.showOnCal && ds >= a.startDate && ds <= a.dueDate).forEach(a => {
-                const timeLabel = (a.category==='회의' && a.meetingTime) ? ` ${a.meetingTime}` : '';
-                evs += `<div class="cal-event" style="background:${mColors[managers.indexOf(a.manager)]}">${timeLabel}${a.content}</div>`;
-            });
+            let evs = '';
+            activities
+                .filter(a => a.showOnCal && a.startDate && a.dueDate && ds >= a.startDate && ds <= a.dueDate)
+                .forEach(a => {
+                    const timeLabel = (a.category === '회의' && a.meetingTime) ? `${a.meetingTime} ` : '';
+                    const col = mColors[managers.indexOf(a.manager)] || '#888';
+                    evs += `<div class="cal-event" style="background:${col}" title="${a.content}">${timeLabel}${a.content}</div>`;
+                });
             grid.innerHTML += `<div class="cal-cell"><b>${d}</b>${evs}</div>`;
         }
     }
 
-    window.changeMonth = (v) => { curDate.setMonth(curDate.getMonth()+v); refreshUI(); };
-    setInterval(() => { document.getElementById('clock').innerText = new Date().toLocaleString(); }, 1000);
+    window.changeMonth = (v) => { curDate.setMonth(curDate.getMonth() + v); renderCalendar(); };
+    setInterval(() => { document.getElementById('clock').innerText = new Date().toLocaleString('ko-KR'); }, 1000);
 </script>
 </body>
 </html>
