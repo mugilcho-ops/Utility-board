@@ -3,60 +3,98 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Utility Team Master v11.5</title>
+    <title>Utility Team Master v12.0</title>
     <style>
-        :root { --posco-blue: #004b91; --bg: #f4f7fa; }
+        :root {
+            --posco-blue: #004b91;
+            --bg: #f4f7fa;
+            /* 캘린더 컬럼: 일·토요일 30% 너비 */
+            --cal-cols: 0.3fr 1fr 1fr 1fr 1fr 1fr 0.3fr;
+        }
         body { font-family: 'Pretendard', sans-serif; background-color: var(--bg); margin: 0; padding-bottom: 60px; }
         header { background-color: var(--posco-blue); color: white; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1001; }
+        .bell-btn { background: rgba(255,255,255,0.15); color: white; border: 1px solid rgba(255,255,255,0.4); border-radius: 5px; padding: 4px 10px; font-size: 0.75rem; cursor: pointer; }
+        .bell-btn.on { background: #52c41a; border-color: #52c41a; }
 
+        /* ─────────── 캘린더 ─────────── */
         .calendar-section { max-width: 1600px; margin: 20px auto; background: white; padding: 15px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
-        .summary-container { max-width: 1600px; margin: 0 auto 20px; display: flex; gap: 15px; padding: 0 20px; }
-        .summary-box { flex: 1; background: #fffbe6; border: 1px solid #ffe58f; padding: 12px; border-radius: 8px; min-height: 80px; }
-        .summary-title { font-weight: 800; color: #856404; margin-bottom: 8px; font-size: 0.85rem; border-bottom: 1px solid #ffe58f; padding-bottom: 4px; }
+        .cal-head { display: grid; grid-template-columns: var(--cal-cols); gap: 1px; background: #ddd; border: 1px solid #ddd; border-bottom: none; }
+        .cal-head div { text-align: center; padding: 5px 2px; font-weight: bold; font-size: 0.75rem; background: #f0f0f0; }
+        .cal-head .sun { color: #cf1322; } .cal-head .sat { color: #1a5bbf; }
 
-        .container { max-width: 1600px; margin: 0 auto; padding: 0 20px; display: flex; flex-direction: column; gap: 12px; }
+        .cal-week { display: grid; grid-template-columns: var(--cal-cols); gap: 1px; background: #ddd; border: 1px solid #ddd; border-top: none; }
+        .cal-cell { background: white; padding: 4px; box-sizing: border-box; overflow: hidden; min-width: 0; }
+        .cal-cell.today-cell { background: #fffbe6; outline: 2px solid #faad14; outline-offset: -2px; }
+        .cal-cell b { font-size: 0.75rem; display: inline-block; }
+
+        /* 주 단위 크기: 이번주 100% / 다음주 60% / 나머지 30% */
+        .wk-cur   .cal-cell { min-height: 110px; }
+        .wk-next  .cal-cell { min-height: 66px; }
+        .wk-other .cal-cell { min-height: 33px; }
+        .wk-next  .cal-cell b { font-size: 0.68rem; }
+        .wk-other .cal-cell b { font-size: 0.6rem; }
+
+        .cal-event { padding: 1px 4px; border-radius: 2px; margin-top: 1px; color: white; font-size: 0.65rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .wk-next  .cal-event { font-size: 0.56rem; padding: 0 3px; }
+        .wk-other .cal-event { height: 4px; padding: 0; border-radius: 2px; font-size: 0; }
+        .cal-event.past { opacity: 0.45; }
+        .cal-event.done-ev { opacity: 0.45; text-decoration: line-through; }
+
+        /* ─────────── 등록 바 ─────────── */
+        .reg-bar { max-width: 1600px; margin: 0 auto 16px; padding: 10px 14px; background: white; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); display: flex; flex-direction: column; gap: 6px; box-sizing: border-box; }
+        .reg-row { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; font-size: 0.78rem; }
+        .reg-bar select, .reg-bar input[type="text"], .reg-bar input[type="date"] { padding: 5px 6px; border: 1px solid #ddd; border-radius: 5px; font-size: 0.78rem; }
+        .reg-bar input[type="text"] { flex: 1; min-width: 160px; }
+        .add-btn { background: var(--posco-blue); color: white; padding: 6px 16px; font-size: 0.78rem; border: none; cursor: pointer; border-radius: 5px; font-weight: bold; white-space: nowrap; }
+        .date-end-wrap { display: flex; align-items: center; gap: 4px; }
+        .date-end-wrap.hidden { display: none; }
+        .meeting-extra { display: none; background: #eef4ff; border: 1px solid #b8cff5; border-radius: 5px; padding: 5px 8px; gap: 10px; align-items: center; flex-wrap: wrap; font-size: 0.75rem; }
+        .meeting-extra.visible { display: flex; }
+        .meeting-extra label { color: #003a7a; font-weight: 700; gap: 4px; display: flex; align-items: center; }
+
+        /* ─────────── 주요 Activity 요약 ─────────── */
+        .summary-container { max-width: 1600px; margin: 0 auto 20px; display: flex; gap: 15px; padding: 0 20px; box-sizing: border-box; }
+        .summary-box { flex: 1; padding: 12px; border-radius: 8px; min-height: 80px; min-width: 0; }
+        .summary-box.today { background: #fff1f0; border: 1px solid #ffa39e; }
+        .summary-box.this  { background: #fffbe6; border: 1px solid #ffe58f; }
+        .summary-box.next  { background: #e6f7ff; border: 1px solid #91d5ff; }
+        .summary-title { font-weight: 800; margin-bottom: 8px; font-size: 0.85rem; padding-bottom: 4px; }
+        .summary-box.today .summary-title { color: #a8071a; border-bottom: 1px solid #ffa39e; }
+        .summary-box.this  .summary-title { color: #856404; border-bottom: 1px solid #ffe58f; }
+        .summary-box.next  .summary-title { color: #0050b3; border-bottom: 1px solid #91d5ff; }
+        .summary-item { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; border-bottom: 1px dashed #ddd; padding-bottom: 3px; font-size: 0.78rem; gap: 6px; }
+        .summary-item > span:first-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+
+        /* ─────────── 게시판 (오늘/이번주/다음주) ─────────── */
+        .container { max-width: 1600px; margin: 0 auto; padding: 0 20px; display: flex; flex-direction: column; gap: 12px; box-sizing: border-box; }
         .person-row { display: flex; gap: 12px; align-items: flex-start; }
         .person-label { width: 80px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; padding-top: 26px; }
         .person-label-inner { font-weight: 800; font-size: 0.8rem; color: white; padding: 6px 10px; border-radius: 6px; text-align: center; }
-
         .week-panel { flex: 1; min-width: 0; }
-        .week-header { font-size: 0.72rem; font-weight: 800; color: var(--posco-blue); border-bottom: 2px solid var(--posco-blue); padding-bottom: 4px; margin-bottom: 6px; }
-        .week-header.next { color: #555; border-color: #555; }
+        .week-header { font-size: 0.72rem; font-weight: 800; padding-bottom: 4px; margin-bottom: 6px; }
+        .week-header.today { color: #cf1322; border-bottom: 2px solid #cf1322; }
+        .week-header.this  { color: var(--posco-blue); border-bottom: 2px solid var(--posco-blue); }
+        .week-header.next  { color: #555; border-bottom: 2px solid #555; }
 
-        .eng-card { background: white; border-radius: 8px; padding: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+        .eng-card { background: white; border-radius: 8px; padding: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); min-height: 36px; }
         .color-common { border-left: 6px solid #555; }
         .color-0 { border-left: 6px solid #e74c3c; }
         .color-1 { border-left: 6px solid #f39c12; }
         .color-2 { border-left: 6px solid #27ae60; }
         .color-3 { border-left: 6px solid #2980b9; }
         .color-4 { border-left: 6px solid #8e44ad; }
+        .empty-hint { color: #ccc; font-size: 0.68rem; text-align: center; padding: 6px 0; }
 
-        .input-area { background: #f9fafb; padding: 8px; border-radius: 6px; margin-bottom: 8px; display: flex; flex-direction: column; gap: 5px; }
-        .input-row { display: flex; gap: 4px; align-items: center; font-size: 0.72rem; flex-wrap: wrap; }
-        select, input[type="text"] { padding: 3px 4px; border: 1px solid #ddd; border-radius: 4px; font-size: 0.72rem; }
-        input[type="date"] { padding: 3px; border: 1px solid #ddd; font-size: 0.68rem; border-radius: 4px; }
-        .add-btn { background: var(--posco-blue); color: white; padding: 5px 8px; font-size: 0.72rem; border: none; cursor: pointer; border-radius: 4px; font-weight: bold; white-space: nowrap; }
-
-        /* 회의 전용 날짜 행 — 종료일 숨김 처리용 */
-        .date-end-wrap { display: flex; align-items: center; gap: 4px; }
-        .date-end-wrap.hidden { display: none; }
-
-        .meeting-extra { display: none; background: #eef4ff; border: 1px solid #b8cff5; border-radius: 4px; padding: 5px 8px; gap: 6px; align-items: center; flex-wrap: wrap; font-size: 0.72rem; }
-        .meeting-extra.visible { display: flex; }
-        .meeting-extra label { color: #003a7a; font-weight: 700; gap: 3px; display: flex; align-items: center; }
-        .meeting-extra select { font-size: 0.72rem; padding: 3px 4px; }
-
-        /* 추후지정 배지 */
         .badge-tbd { display: inline-block; font-size: 0.58rem; background: #fff7e6; color: #d46b08; border: 1px solid #ffd591; border-radius: 3px; padding: 1px 5px; font-weight: 700; margin-left: 2px; }
 
         .activity-item { display: flex; align-items: flex-start; padding: 5px 7px; margin-bottom: 3px; background: #fff; border: 1px solid #eee; border-radius: 4px; gap: 8px; }
         .activity-item.done { opacity: 0.4; background: #f9f9f9; }
-
         .item-left-meta { display: flex; flex-direction: column; gap: 2px; width: 82px; flex-shrink: 0; }
         .item-dates { font-size: 0.58rem; color: #777; }
         .item-meeting-info { font-size: 0.58rem; color: #1a5bbf; font-weight: 600; }
         .item-btns { display: flex; gap: 2px; margin-top: 2px; }
         .btn-tiny { font-size: 0.55rem; padding: 2px 4px; cursor: pointer; border: none; border-radius: 2px; color: white; white-space: nowrap; }
+        .item-center-content { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
 
         .tag { font-size: 0.58rem; padding: 1px 4px; border-radius: 3px; font-weight: bold; flex-shrink: 0; display: inline-block; }
         .tag-중요 { background: #fff1f0; color: #cf1322; }
@@ -65,76 +103,85 @@
         .tag-일상 { background: #f6ffed; color: #389e0d; }
         .tag-휴가 { background: #f9f0ff; color: #531dab; }
 
-        .summary-item { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; border-bottom: 1px dashed #ddd; padding-bottom: 3px; font-size: 0.8rem; }
-        .item-center-content { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
-
-        .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; background: #ddd; border: 1px solid #ddd; }
-        .cal-cell { background: white; min-height: 85px; padding: 5px; box-sizing: border-box; }
-        .cal-cell b { font-size: 0.75rem; margin-bottom: 4px; display: inline-block; }
-        .cal-event { padding: 1px 4px; border-radius: 2px; margin-top: 1px; color: white; font-size: 0.65rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-
-        /* ── 수정 모달 ── */
+        /* ─────────── 수정 모달 ─────────── */
         #modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1999; }
-        #edit-modal {
-            display: none; position: fixed; top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            background: white; padding: 22px; border-radius: 10px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            z-index: 2000; width: 360px; max-width: 95vw;
-            max-height: 90vh; overflow-y: auto;
-        }
+        #edit-modal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 22px; border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); z-index: 2000; width: 360px; max-width: 95vw; max-height: 90vh; overflow-y: auto; }
         .modal-field { display: flex; flex-direction: column; gap: 4px; }
         .modal-field label { font-size: 0.78rem; font-weight: 700; color: #444; }
-        .modal-field input[type="text"],
-        .modal-field input[type="date"],
-        .modal-field select {
-            padding: 6px 8px; border: 1px solid #ddd; border-radius: 5px;
-            font-size: 0.82rem; width: 100%; box-sizing: border-box;
-        }
-        .modal-field input[type="text"]:focus,
-        .modal-field select:focus { border-color: var(--posco-blue); outline: none; }
+        .modal-field input[type="text"], .modal-field input[type="date"], .modal-field select { padding: 6px 8px; border: 1px solid #ddd; border-radius: 5px; font-size: 0.82rem; width: 100%; box-sizing: border-box; }
+        .modal-field input[type="text"]:focus, .modal-field select:focus { border-color: var(--posco-blue); outline: none; }
         .modal-section { background: #eef4ff; border: 1px solid #b8cff5; border-radius: 6px; padding: 10px; display: flex; flex-direction: column; gap: 8px; }
         .modal-section-title { font-size: 0.75rem; font-weight: 800; color: #003a7a; margin-bottom: 2px; }
-        /* 모달 종료일 숨김 */
-        #modal-end-row { transition: opacity 0.2s; }
         #modal-end-row.hidden { display: none; }
+
+        /* ─────────── 회의 알림 팝업 ─────────── */
+        #meet-popup { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; border: 3px solid #cf1322; border-radius: 12px; box-shadow: 0 12px 40px rgba(0,0,0,0.35); z-index: 3000; width: 340px; max-width: 92vw; padding: 20px; text-align: center; animation: popIn 0.25s ease; }
+        @keyframes popIn { from { transform: translate(-50%,-50%) scale(0.85); opacity: 0; } to { transform: translate(-50%,-50%) scale(1); opacity: 1; } }
+        #meet-popup .mp-title { font-size: 1rem; font-weight: 900; color: #cf1322; margin-bottom: 10px; }
+        #meet-popup .mp-body { font-size: 0.88rem; color: #333; line-height: 1.6; background: #fff1f0; border-radius: 8px; padding: 10px; margin-bottom: 14px; }
+        #meet-popup button { background: #cf1322; color: white; border: none; border-radius: 6px; padding: 8px 28px; font-weight: 700; cursor: pointer; font-size: 0.85rem; }
     </style>
 </head>
 <body>
 
 <header>
-    <div style="font-weight: 900;">POSCO E&C <span style="font-weight: 300;">Utility Team Master v11.5</span></div>
-    <div id="clock" style="font-size: 0.8rem;"></div>
+    <div style="font-weight: 900;">POSCO E&C <span style="font-weight: 300;">Utility Team Master v12.0</span></div>
+    <div style="display:flex; align-items:center; gap:12px;">
+        <button class="bell-btn" id="bell-btn" onclick="enableNotify()">🔔 브라우저 알림 켜기</button>
+        <div id="clock" style="font-size: 0.8rem;"></div>
+    </div>
 </header>
 
+<!-- ── 캘린더 ── -->
 <div class="calendar-section">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
         <button onclick="changeMonth(-1)" style="cursor:pointer; padding:4px 10px; border:1px solid #ddd; border-radius:4px; background:#fff;">◀</button>
         <b id="cal-month-title" style="font-size:1.1rem;"></b>
         <button onclick="changeMonth(1)" style="cursor:pointer; padding:4px 10px; border:1px solid #ddd; border-radius:4px; background:#fff;">▶</button>
     </div>
-    <div class="cal-grid" id="cal-grid"></div>
+    <div id="cal-wrap"></div>
 </div>
 
+<!-- ── 일정 등록 바 (전 담당자 공용) ── -->
+<div class="reg-bar">
+    <div class="reg-row">
+        <b style="color:var(--posco-blue); font-size:0.8rem;">➕ 일정 등록</b>
+        <select id="g-mgr"></select>
+        <select id="g-cat" onchange="toggleMeetingExtra()"></select>
+        <input type="text" id="g-txt" placeholder="업무내용">
+        <span id="g-start-label">시작</span>
+        <input type="date" id="g-s">
+        <span class="date-end-wrap" id="g-end-wrap">완료 <input type="date" id="g-e"></span>
+        <button class="add-btn" onclick="addAct()">등록</button>
+    </div>
+    <div class="meeting-extra reg-row" id="g-meet">
+        <label>🕐 시작시간 <select id="g-mtime"></select></label>
+        <label>📍 장소 <select id="g-mplace"></select></label>
+    </div>
+</div>
+
+<!-- ── 주요 Activity 요약: 오늘 / 이번주 / 다음주 ── -->
 <div class="summary-container">
-    <div class="summary-box">
+    <div class="summary-box today">
+        <div class="summary-title">🔥 Today 주요 Activity (<span id="range-today"></span>)</div>
+        <div id="sum-today"></div>
+    </div>
+    <div class="summary-box this">
         <div class="summary-title">🚩 This Week 주요 Activity</div>
         <div id="sum-this"></div>
     </div>
-    <div class="summary-box" style="background:#e6f7ff; border-color:#91d5ff;">
-        <div class="summary-title" style="color:#0050b3;">📅 Next Week 주요 Activity</div>
+    <div class="summary-box next">
+        <div class="summary-title">📅 Next Week 주요 Activity</div>
         <div id="sum-next" style="color:#0050b3;"></div>
     </div>
 </div>
 
-<div style="max-width:1600px; margin: 0 auto 6px; padding: 0 20px; display: flex; gap: 12px;">
+<!-- ── 게시판 헤더 ── -->
+<div style="max-width:1600px; margin: 0 auto 6px; padding: 0 20px; display: flex; gap: 12px; box-sizing:border-box;">
     <div style="width:80px; flex-shrink:0;"></div>
-    <div style="flex:1; font-weight:800; font-size:0.82rem; color:var(--posco-blue); text-align:center;">
-        THIS WEEK (<span id="range-this"></span>)
-    </div>
-    <div style="flex:1; font-weight:800; font-size:0.82rem; color:#555; text-align:center;">
-        NEXT WEEK (<span id="range-next"></span>)
-    </div>
+    <div style="flex:1; font-weight:800; font-size:0.82rem; color:#cf1322; text-align:center;">TODAY</div>
+    <div style="flex:1; font-weight:800; font-size:0.82rem; color:var(--posco-blue); text-align:center;">THIS WEEK 남은 일정 (<span id="range-this"></span>)</div>
+    <div style="flex:1; font-weight:800; font-size:0.82rem; color:#555; text-align:center;">NEXT WEEK (<span id="range-next"></span>)</div>
 </div>
 
 <div class="container" id="person-rows"></div>
@@ -147,31 +194,19 @@
         <button onclick="closeEdit()" style="border:none; background:none; font-size:1.2rem; cursor:pointer; color:#888;">✕</button>
     </div>
     <input type="hidden" id="edit-id">
-    <input type="hidden" id="edit-category-hidden">
-
     <div style="display:flex; flex-direction:column; gap:12px;">
-        <!-- 담당자 (읽기전용) -->
         <div class="modal-field">
             <label>👤 담당자</label>
             <input type="text" id="edit-manager-display" readonly style="background:#f5f5f5; color:#888; cursor:default;">
         </div>
-        <!-- 카테고리 -->
         <div class="modal-field">
             <label>🏷️ 카테고리</label>
-            <select id="edit-category" onchange="onEditCatChange()">
-                <option value="중요">중요</option>
-                <option value="일상">일상</option>
-                <option value="회의">회의</option>
-                <option value="이벤트">이벤트</option>
-                <option value="휴가">휴가</option>
-            </select>
+            <select id="edit-category" onchange="onEditCatChange()"></select>
         </div>
-        <!-- 업무 내용 -->
         <div class="modal-field">
             <label>📝 업무 내용</label>
             <input type="text" id="edit-content" placeholder="업무 내용을 입력하세요">
         </div>
-        <!-- 날짜: 시작일 항상 표시, 종료일은 회의 아닐 때만 표시 -->
         <div style="display:flex; gap:8px;">
             <div class="modal-field" style="flex:1;">
                 <label>📅 시작일</label>
@@ -182,7 +217,6 @@
                 <input type="date" id="edit-end">
             </div>
         </div>
-        <!-- 회의 전용 필드 -->
         <div id="edit-meeting-fields" style="display:none;">
             <div class="modal-section">
                 <div class="modal-section-title">🤝 회의 정보</div>
@@ -192,23 +226,26 @@
                 </div>
                 <div class="modal-field">
                     <label>📍 장소</label>
-                    <select id="edit-place">
-                        <!-- 장소 옵션은 JS에서 주입 -->
-                    </select>
+                    <select id="edit-place"></select>
                 </div>
             </div>
         </div>
-        <!-- 캘린더 표시 여부 -->
         <div style="display:flex; align-items:center; gap:8px; font-size:0.82rem;">
             <input type="checkbox" id="edit-showCal" style="width:auto;">
             <label for="edit-showCal" style="cursor:pointer;">📆 캘린더에 표시</label>
         </div>
     </div>
-
     <div style="text-align:right; margin-top:16px; display:flex; justify-content:flex-end; gap:8px;">
         <button onclick="closeEdit()" style="padding:7px 14px; cursor:pointer; border:1px solid #ddd; border-radius:5px; background:#fff; font-size:0.82rem;">취소</button>
         <button onclick="saveEdit()" style="background:var(--posco-blue); color:white; border:none; padding:7px 16px; border-radius:5px; cursor:pointer; font-size:0.82rem; font-weight:700;">저장</button>
     </div>
+</div>
+
+<!-- ── 회의 30분 전 알림 팝업 ── -->
+<div id="meet-popup">
+    <div class="mp-title">🔔 회의 30분 전 알림</div>
+    <div class="mp-body" id="mp-body"></div>
+    <button onclick="document.getElementById('meet-popup').style.display='none'">확인</button>
 </div>
 
 <script type="module">
@@ -233,11 +270,8 @@
     const managers = ["Utility 공통", "조갑수", "전해석", "박일경", "조래혁", "김형진"];
     const mColors  = ["#555555", "#e74c3c", "#f39c12", "#27ae60", "#2980b9", "#8e44ad"];
     const cats     = ["중요", "일상", "회의", "이벤트", "휴가"];
-
-    // ── 장소 목록: '추후지정' 맨 앞 ──
     const meetingPlaces = ["추후지정","2대","2소1","2소2","2소3","2소4","2소5","2소6","2휴게","3층","4층","5층"];
 
-    // ── 시간 옵션: 08:00 ~ 18:00, 30분 단위 ──
     function buildTimeOptions() {
         const opts = ['<option value="">선택</option>'];
         for (let h = 8; h <= 18; h++) {
@@ -249,20 +283,20 @@
         }
         return opts.join('');
     }
-    const TIME_OPTIONS_HTML  = buildTimeOptions();
-
-    // 장소 옵션 HTML (추후지정 기본 선택)
+    const TIME_OPTIONS_HTML = buildTimeOptions();
     function buildPlaceOptions(selectedVal = '추후지정') {
         return meetingPlaces.map(p =>
             `<option value="${p}" ${p === selectedVal ? 'selected' : ''}>${p === '추후지정' ? '⏳ 추후지정' : p}</option>`
         ).join('');
     }
-    const PLACE_OPTIONS_HTML = buildPlaceOptions();  // 기본: 추후지정 selected
 
     let activities = [];
     let curDate    = new Date();
 
-    // ── 날짜 비교: 문자열(timezone 오류 방지) ──
+    // ── 날짜 유틸 (문자열 비교, timezone 오류 방지) ──
+    const toStr = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    const todayStr = () => toStr(new Date());
+
     function getWeekRange(offsetWeeks = 0) {
         const now = new Date();
         const day = now.getDay();
@@ -272,169 +306,137 @@
         mon.setHours(0, 0, 0, 0);
         const fri = new Date(mon); fri.setDate(mon.getDate() + 4);
         const sun = new Date(mon); sun.setDate(mon.getDate() + 6);
-        const toStr   = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
         const toLabel = d => `${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')}`;
         return { monStr: toStr(mon), sunStr: toStr(sun), label: `${toLabel(mon)} ~ ${toLabel(fri)}` };
     }
+    function overlaps(aStart, aEnd, bStart, bEnd) { return aStart <= bEnd && aEnd >= bStart; }
 
-    function overlaps(aStart, aEnd, bStart, bEnd) {
-        return aStart <= bEnd && aEnd >= bStart;
-    }
+    // ── 정렬 키: 날짜 + 회의시간 (시간 순서 정렬) ──
+    const sortKey = a => `${a.startDate || '9999'}_${a.meetingTime || '00:00'}`;
 
     window.onload = () => {
         const tw = getWeekRange(0);
         const nw = getWeekRange(1);
-        document.getElementById('range-this').innerText = tw.label;
-        document.getElementById('range-next').innerText = nw.label;
+        const td = new Date();
+        document.getElementById('range-this').innerText  = tw.label;
+        document.getElementById('range-next').innerText  = nw.label;
+        document.getElementById('range-today').innerText = `${String(td.getMonth()+1).padStart(2,'0')}.${String(td.getDate()).padStart(2,'0')}`;
 
-        // 모달 시간·장소 옵션 주입
+        // 등록 바 옵션 주입
+        document.getElementById('g-mgr').innerHTML = managers.map(m => `<option value="${m}">${m}</option>`).join('');
+        document.getElementById('g-cat').innerHTML = cats.map(c => `<option value="${c}">${c}</option>`).join('');
+        document.getElementById('g-mtime').innerHTML  = TIME_OPTIONS_HTML;
+        document.getElementById('g-mplace').innerHTML = buildPlaceOptions();
+        document.getElementById('g-s').value = todayStr();
+
+        // 모달 옵션 주입
+        document.getElementById('edit-category').innerHTML = cats.map(c => `<option value="${c}">${c}</option>`).join('');
         document.getElementById('edit-time').innerHTML  = TIME_OPTIONS_HTML;
-        document.getElementById('edit-place').innerHTML = PLACE_OPTIONS_HTML;
+        document.getElementById('edit-place').innerHTML = buildPlaceOptions();
 
         renderPersonRows();
         onValue(actRef, snap => {
             const data = snap.val();
             activities = data ? Object.keys(data).map(k => ({ id: k, ...data[k] })) : [];
             refreshUI();
+            checkMeetings();   // 데이터 수신 직후에도 한 번 점검
         });
+
+        // 알림 버튼 상태 초기화
+        updateBellBtn();
     };
 
-    // ── 담당자별 행 렌더링 ──
+    // ── 담당자별 행: 오늘 / 이번주 / 다음주 3패널 ──
     function renderPersonRows() {
         const container = document.getElementById('person-rows');
+        const panels = [
+            { prefix: 'TD', cls: 'today', title: '오늘' },
+            { prefix: 'TW', cls: 'this',  title: '이번 주 (남은 일정)' },
+            { prefix: 'NW', cls: 'next',  title: '다음 주' }
+        ];
         managers.forEach((name, i) => {
             const row = document.createElement('div');
             row.className = 'person-row';
-
             const label = document.createElement('div');
             label.className = 'person-label';
             label.innerHTML = `<div class="person-label-inner" style="background:${mColors[i]}">${name}</div>`;
-
-            const twPanel = document.createElement('div');
-            twPanel.className = 'week-panel';
-            twPanel.innerHTML = `<div class="week-header">이번 주</div>`;
-            twPanel.appendChild(createCard(i, 'TW'));
-
-            const nwPanel = document.createElement('div');
-            nwPanel.className = 'week-panel';
-            nwPanel.innerHTML = `<div class="week-header next">다음 주</div>`;
-            nwPanel.appendChild(createCard(i, 'NW'));
-
             row.appendChild(label);
-            row.appendChild(twPanel);
-            row.appendChild(nwPanel);
+
+            const colorClass = i === 0 ? 'color-common' : `color-${i-1}`;
+            panels.forEach(p => {
+                const panel = document.createElement('div');
+                panel.className = 'week-panel';
+                panel.innerHTML = `<div class="week-header ${p.cls}">${p.title}</div>
+                    <div class="eng-card ${colorClass}"><div id="list-${p.prefix}-${i}"></div></div>`;
+                row.appendChild(panel);
+            });
             container.appendChild(row);
         });
     }
 
-    function createCard(i, prefix) {
-        const colorClass = i === 0 ? 'color-common' : `color-${i-1}`;
-        const card = document.createElement('div');
-        card.className = `eng-card ${colorClass}`;
-        card.innerHTML = `
-            <div class="input-area">
-                <div class="input-row">
-                    <select id="cat-${prefix}-${i}" onchange="toggleMeetingExtra('${prefix}',${i})">
-                        ${cats.map(c => `<option value="${c}">${c}</option>`).join('')}
-                    </select>
-                    <input type="text" id="txt-${prefix}-${i}" placeholder="업무내용" style="flex:1; min-width:80px;">
-                </div>
-
-                <!-- 회의 선택 시 표시: 시간 + 장소 -->
-                <div class="meeting-extra input-row" id="meet-${prefix}-${i}">
-                    <label style="display:flex; align-items:center; gap:3px; color:#003a7a; font-weight:700;">
-                        🕐 시작시간
-                        <select id="mtime-${prefix}-${i}" style="font-size:0.72rem; padding:3px 4px;">${TIME_OPTIONS_HTML}</select>
-                    </label>
-                    <label style="display:flex; align-items:center; gap:3px; color:#003a7a; font-weight:700;">
-                        📍 장소
-                        <select id="mplace-${prefix}-${i}" style="font-size:0.72rem; padding:3px 4px;">${PLACE_OPTIONS_HTML}</select>
-                    </label>
-                </div>
-
-                <!-- 날짜 행: 회의는 시작일만, 나머지는 시작+종료 -->
-                <div class="input-row" id="date-row-${prefix}-${i}">
-                    <span id="date-start-label-${prefix}-${i}">시작</span>
-                    <input type="date" id="s-${prefix}-${i}">
-                    <span class="date-end-wrap" id="end-wrap-${prefix}-${i}">
-                        완료 <input type="date" id="e-${prefix}-${i}">
-                    </span>
-                    <button class="add-btn" onclick="addAct('${prefix}',${i})">등록</button>
-                </div>
-            </div>
-            <div id="list-${prefix}-${i}"></div>`;
-        return card;
-    }
-
-    // ── 회의 선택 시 meeting-extra 표시 & 종료일 숨김 ──
-    window.toggleMeetingExtra = (prefix, i) => {
-        const isMeeting = document.getElementById(`cat-${prefix}-${i}`).value === '회의';
-        // 시간·장소 필드 토글
-        document.getElementById(`meet-${prefix}-${i}`).classList.toggle('visible', isMeeting);
-        // 종료일 토글
-        document.getElementById(`end-wrap-${prefix}-${i}`).classList.toggle('hidden', isMeeting);
-        // 시작일 레이블 변경
-        document.getElementById(`date-start-label-${prefix}-${i}`).textContent = isMeeting ? '날짜' : '시작';
+    // ── 등록 바: 회의 선택 시 시간·장소 표시 & 종료일 숨김 ──
+    window.toggleMeetingExtra = () => {
+        const isMeeting = document.getElementById('g-cat').value === '회의';
+        document.getElementById('g-meet').classList.toggle('visible', isMeeting);
+        document.getElementById('g-end-wrap').classList.toggle('hidden', isMeeting);
+        document.getElementById('g-start-label').textContent = isMeeting ? '날짜' : '시작';
     };
 
-    window.addAct = (prefix, i) => {
-        const c = document.getElementById(`cat-${prefix}-${i}`).value;
-        const t = document.getElementById(`txt-${prefix}-${i}`).value.trim();
-        const s = document.getElementById(`s-${prefix}-${i}`).value;
+    window.addAct = () => {
+        const mgr = document.getElementById('g-mgr').value;
+        const c   = document.getElementById('g-cat').value;
+        const t   = document.getElementById('g-txt').value.trim();
+        const s   = document.getElementById('g-s').value;
         const isMeeting = c === '회의';
-
-        // 회의는 종료일 = 시작일, 나머지는 종료일 필수
-        const e = isMeeting ? s : document.getElementById(`e-${prefix}-${i}`).value;
+        const e = isMeeting ? s : document.getElementById('g-e').value;
 
         if (!t || !s)         { alert("내용과 날짜를 입력하세요!"); return; }
         if (!isMeeting && !e) { alert("종료일을 입력하세요!"); return; }
+        if (e < s)            { alert("종료일이 시작일보다 빠릅니다!"); return; }
 
         const payload = {
-            manager:   managers[i],
+            manager:   mgr,
             category:  c,
             content:   t,
             startDate: s,
-            dueDate:   e,   // 회의는 startDate와 동일
+            dueDate:   e,
             status:    'active',
-            showOnCal: isMeeting || c === '이벤트',
+            showOnCal: true,   // ★ 기본 표시: 등록 즉시 캘린더에서 확인 가능 (사라짐 방지)
             createdAt: new Date().toISOString()
         };
         if (isMeeting) {
-            payload.meetingTime  = document.getElementById(`mtime-${prefix}-${i}`).value  || '';
-            payload.meetingPlace = document.getElementById(`mplace-${prefix}-${i}`).value || '추후지정';
+            payload.meetingTime  = document.getElementById('g-mtime').value  || '';
+            payload.meetingPlace = document.getElementById('g-mplace').value || '추후지정';
         }
         push(actRef, payload);
 
-        // 입력 초기화
-        document.getElementById(`txt-${prefix}-${i}`).value = '';
-        document.getElementById(`s-${prefix}-${i}`).value   = '';
-        document.getElementById(`e-${prefix}-${i}`).value   = '';
-        document.getElementById(`meet-${prefix}-${i}`).classList.remove('visible');
-        document.getElementById(`end-wrap-${prefix}-${i}`).classList.remove('hidden');
-        document.getElementById(`cat-${prefix}-${i}`).value = '중요';
-        document.getElementById(`date-start-label-${prefix}-${i}`).textContent = '시작';
+        document.getElementById('g-txt').value = '';
+        document.getElementById('g-e').value   = '';
     };
 
-    // ── refreshUI ──
+    // ── 화면 갱신 ──
     function refreshUI() {
         document.querySelectorAll('[id^="list-"]').forEach(el => el.innerHTML = '');
+        const today = todayStr();
         const tw = getWeekRange(0);
         const nw = getWeekRange(1);
-        let sTW = '', sNW = '';
+        let sTD = '', sTW = '', sNW = '';
 
         activities
             .slice()
-            .sort((a, b) => (a.startDate || '').localeCompare(b.startDate || ''))
+            .sort((a, b) => sortKey(a).localeCompare(sortKey(b)))
             .forEach(a => {
                 if (!a.manager || !a.startDate || !a.dueDate) return;
                 const mIdx = managers.indexOf(a.manager);
                 if (mIdx < 0) return;
 
-                const inTW = overlaps(a.startDate, a.dueDate, tw.monStr, tw.sunStr);
-                const inNW = overlaps(a.startDate, a.dueDate, nw.monStr, nw.sunStr);
+                const expired = a.dueDate < today;          // ★ 종료 다음날부터 게시판 제외 (DB·캘린더에는 유지)
+                const inToday = !expired && a.startDate <= today;
+                const inTW    = !expired && !inToday && overlaps(a.startDate, a.dueDate, tw.monStr, tw.sunStr);
+                const inNW    = overlaps(a.startDate, a.dueDate, nw.monStr, nw.sunStr);
 
-                if (['중요','이벤트','회의'].includes(a.category) && a.status === 'active') {
-                    // 추후지정이면 배지 표시
+                // 요약 (중요/이벤트/회의, 진행중)
+                if (['중요','이벤트','회의'].includes(a.category) && a.status === 'active' && !expired) {
                     const placeDisp = a.meetingPlace === '추후지정'
                         ? ` <span class="badge-tbd">⏳추후지정</span>`
                         : (a.meetingPlace ? ` 📍${a.meetingPlace}` : '');
@@ -446,39 +448,42 @@
                         </span>
                         <input type="checkbox" ${a.showOnCal ? 'checked' : ''} onchange="toggleCal('${a.id}',this.checked)">
                     </div>`;
-                    if (inTW) sTW += html;
-                    if (inNW) sNW += html;
+                    if (inToday) sTD += html;
+                    else if (inTW) sTW += html;
+                    if (inNW) sNW += html;   // 다음주 겹침 일정은 모두 표시 (이번주→다음주 걸친 일정 포함)
                 }
 
-                if (inTW) createItem('TW', mIdx, a);
+                // 게시판 패널
+                if (inToday) createItem('TD', mIdx, a);
+                else if (inTW) createItem('TW', mIdx, a);
                 if (inNW) createItem('NW', mIdx, a);
             });
 
-        document.getElementById('sum-this').innerHTML = sTW || '<span style="color:#aaa">주요 일정 없음</span>';
-        document.getElementById('sum-next').innerHTML = sNW || '<span style="color:#aaa">주요 일정 없음</span>';
+        document.getElementById('sum-today').innerHTML = sTD || '<span style="color:#aaa">오늘 주요 일정 없음</span>';
+        document.getElementById('sum-this').innerHTML  = sTW || '<span style="color:#aaa">주요 일정 없음</span>';
+        document.getElementById('sum-next').innerHTML  = sNW || '<span style="color:#aaa">주요 일정 없음</span>';
+
+        // 빈 패널 표시
+        document.querySelectorAll('[id^="list-"]').forEach(el => {
+            if (!el.children.length) el.innerHTML = '<div class="empty-hint">—</div>';
+        });
         renderCalendar();
     }
 
     function createItem(prefix, mIdx, a) {
         const el = document.getElementById(`list-${prefix}-${mIdx}`);
         if (!el) return;
-
-        // 날짜 표시: 회의는 날짜 하나만
         const dateDisp = (a.category === '회의')
             ? a.startDate.slice(5)
             : `${a.startDate.slice(5)}~${a.dueDate.slice(5)}`;
-
-        // 회의 장소 표시
         const placeDisp = a.category === '회의'
             ? (a.meetingPlace === '추후지정'
                 ? `<span class="badge-tbd">⏳추후지정</span>`
                 : (a.meetingPlace ? `📍${a.meetingPlace}` : ''))
             : '';
-
         const meetInfo = (a.category === '회의')
             ? `<span class="item-meeting-info">${a.meetingTime ? `⏰${a.meetingTime} ` : ''}${placeDisp}</span>`
             : '';
-
         const item = document.createElement('div');
         item.className = `activity-item ${a.status === 'done' ? 'done' : ''}`;
         item.innerHTML = `
@@ -498,13 +503,11 @@
         el.appendChild(item);
     }
 
-    // ── 수정 모달 열기 ──
+    // ── 수정 모달 ──
     window.openEdit = (id) => {
         const a = activities.find(x => x.id === id);
         if (!a) return;
-
         document.getElementById('edit-id').value              = id;
-        document.getElementById('edit-category-hidden').value = a.category;
         document.getElementById('edit-manager-display').value = a.manager;
         document.getElementById('edit-category').value        = a.category;
         document.getElementById('edit-content').value         = a.content;
@@ -513,21 +516,16 @@
         document.getElementById('edit-showCal').checked       = !!a.showOnCal;
 
         const isMeeting = a.category === '회의';
-        // 회의 필드 & 종료일 행 토글
         document.getElementById('edit-meeting-fields').style.display = isMeeting ? 'block' : 'none';
         document.getElementById('modal-end-row').classList.toggle('hidden', isMeeting);
-
         if (isMeeting) {
-            document.getElementById('edit-time').value  = a.meetingTime  || '';
-            // 장소: 저장된 값 또는 기본 '추후지정'
+            document.getElementById('edit-time').value      = a.meetingTime || '';
             document.getElementById('edit-place').innerHTML = buildPlaceOptions(a.meetingPlace || '추후지정');
         }
-
         document.getElementById('edit-modal').style.display    = 'block';
         document.getElementById('modal-overlay').style.display = 'block';
     };
 
-    // 수정 모달 카테고리 변경 시
     window.onEditCatChange = () => {
         const isMeeting = document.getElementById('edit-category').value === '회의';
         document.getElementById('edit-meeting-fields').style.display = isMeeting ? 'block' : 'none';
@@ -547,8 +545,9 @@
         const endDate   = isMeeting ? startDate : document.getElementById('edit-end').value;
         const content   = document.getElementById('edit-content').value.trim();
 
-        if (!content || !startDate)           { alert("내용과 시작일을 입력하세요!"); return; }
-        if (!isMeeting && !endDate)            { alert("종료일을 입력하세요!"); return; }
+        if (!content || !startDate) { alert("내용과 시작일을 입력하세요!"); return; }
+        if (!isMeeting && !endDate) { alert("종료일을 입력하세요!"); return; }
+        if (endDate < startDate)    { alert("종료일이 시작일보다 빠릅니다!"); return; }
 
         const updates = {
             category:  cat,
@@ -557,7 +556,6 @@
             dueDate:   endDate,
             showOnCal: document.getElementById('edit-showCal').checked
         };
-
         if (isMeeting) {
             updates.meetingTime  = document.getElementById('edit-time').value  || '';
             updates.meetingPlace = document.getElementById('edit-place').value || '추후지정';
@@ -565,44 +563,151 @@
             updates.meetingTime  = null;
             updates.meetingPlace = null;
         }
-
         update(ref(db, `activities/${id}`), updates);
         closeEdit();
     };
 
     window.toggleStat = (id, s) => update(ref(db, `activities/${id}`), { status: s === 'done' ? 'active' : 'done' });
-    window.delAct     = (id) => { if (confirm("이 일정을 삭제할까요?")) remove(ref(db, `activities/${id}`)); };
+    window.delAct     = (id) => { if (confirm("이 일정을 삭제할까요?\n(지난 일정은 삭제하지 않아도 게시판에서 자동으로 사라지고 캘린더에는 남습니다)")) remove(ref(db, `activities/${id}`)); };
     window.toggleCal  = (id, chk) => update(ref(db, `activities/${id}`), { showOnCal: chk });
 
-    // ── 캘린더 렌더링 ──
+    // ── 캘린더: 주 단위 가변 크기 렌더링 ──
     function renderCalendar() {
-        const grid = document.getElementById('cal-grid');
-        grid.innerHTML = '';
-        ['일','월','화','수','목','금','토'].forEach(l => {
-            grid.innerHTML += `<div style="text-align:center;padding:5px;font-weight:bold;font-size:0.75rem;background:#f0f0f0;">${l}</div>`;
-        });
+        const wrap = document.getElementById('cal-wrap');
         const y = curDate.getFullYear(), m = curDate.getMonth();
         document.getElementById('cal-month-title').innerText = `${y}.${String(m+1).padStart(2,'0')}`;
+
+        // 요일 헤더
+        let html = `<div class="cal-head">
+            <div class="sun">일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div class="sat">토</div>
+        </div>`;
+
+        // 이번주/다음주 판별 기준 (일요일 시작 주)
+        const now = new Date();
+        const wkSun = new Date(now); wkSun.setDate(now.getDate() - now.getDay()); wkSun.setHours(0,0,0,0);
+        const curWkStart = toStr(wkSun);
+        const curWkEnd   = toStr(new Date(wkSun.getFullYear(), wkSun.getMonth(), wkSun.getDate() + 6));
+        const nxtWkStart = toStr(new Date(wkSun.getFullYear(), wkSun.getMonth(), wkSun.getDate() + 7));
+        const nxtWkEnd   = toStr(new Date(wkSun.getFullYear(), wkSun.getMonth(), wkSun.getDate() + 13));
+        const today = todayStr();
+
+        // 월을 주 단위 배열로 구성
         const fDay  = new Date(y, m, 1).getDay();
         const lDate = new Date(y, m+1, 0).getDate();
-        for (let i = 0; i < fDay; i++) grid.innerHTML += `<div class="cal-cell"></div>`;
+        const weeks = [];
+        let week = new Array(7).fill(null);
+        let col = fDay;
         for (let d = 1; d <= lDate; d++) {
-            const ds = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-            let evs = '';
-            activities
-                .filter(a => a.showOnCal && a.startDate && a.dueDate && ds >= a.startDate && ds <= a.dueDate)
-                .forEach(a => {
-                    const timeLabel = (a.category === '회의' && a.meetingTime) ? `${a.meetingTime} ` : '';
-                    const placeLabel = (a.category === '회의' && a.meetingPlace && a.meetingPlace !== '추후지정') ? ` @${a.meetingPlace}` : '';
-                    const col = mColors[managers.indexOf(a.manager)] || '#888';
-                    evs += `<div class="cal-event" style="background:${col}" title="${a.content}${placeLabel}">${timeLabel}${a.content}</div>`;
-                });
-            grid.innerHTML += `<div class="cal-cell"><b>${d}</b>${evs}</div>`;
+            week[col] = { d, ds: `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}` };
+            col++;
+            if (col === 7) { weeks.push(week); week = new Array(7).fill(null); col = 0; }
         }
+        if (col > 0) weeks.push(week);
+
+        weeks.forEach(wk => {
+            // 주 크기 결정: 이번주 100% / 다음주 60% / 나머지 30%
+            let wkClass = 'wk-other';
+            for (const cell of wk) {
+                if (!cell) continue;
+                if (cell.ds >= curWkStart && cell.ds <= curWkEnd) { wkClass = 'wk-cur'; break; }
+                if (cell.ds >= nxtWkStart && cell.ds <= nxtWkEnd) { wkClass = 'wk-next'; }
+            }
+            let cells = '';
+            wk.forEach(cell => {
+                if (!cell) { cells += `<div class="cal-cell"></div>`; return; }
+                const isToday = cell.ds === today;
+                let evs = '';
+                activities
+                    .filter(a => a.showOnCal && a.startDate && a.dueDate && cell.ds >= a.startDate && cell.ds <= a.dueDate)
+                    .sort((a, b) => sortKey(a).localeCompare(sortKey(b)))
+                    .forEach(a => {
+                        const timeLabel  = (a.category === '회의' && a.meetingTime) ? `${a.meetingTime} ` : '';
+                        const placeLabel = (a.category === '회의' && a.meetingPlace && a.meetingPlace !== '추후지정') ? ` @${a.meetingPlace}` : '';
+                        const col = mColors[managers.indexOf(a.manager)] || '#888';
+                        const pastCls = a.dueDate < today ? 'past' : (a.status === 'done' ? 'done-ev' : '');
+                        evs += `<div class="cal-event ${pastCls}" style="background:${col}" title="[${a.manager}] ${a.content}${placeLabel}">${timeLabel}${a.content}</div>`;
+                    });
+                cells += `<div class="cal-cell ${isToday ? 'today-cell' : ''}"><b>${cell.d}</b>${evs}</div>`;
+            });
+            html += `<div class="cal-week ${wkClass}">${cells}</div>`;
+        });
+        wrap.innerHTML = html;
     }
 
     window.changeMonth = (v) => { curDate.setMonth(curDate.getMonth() + v); renderCalendar(); };
+
+    // ── 회의 30분 전 알림 ──
+    const NOTIFIED_KEY = 'utm_notified_meetings';
+    let notified = new Set(JSON.parse(localStorage.getItem(NOTIFIED_KEY) || '[]'));
+
+    function saveNotified() {
+        // 오늘 키만 보관 (localStorage 비대화 방지)
+        const today = todayStr();
+        const arr = [...notified].filter(k => k.endsWith(today));
+        notified = new Set(arr);
+        localStorage.setItem(NOTIFIED_KEY, JSON.stringify(arr));
+    }
+
+    function checkMeetings() {
+        const now   = new Date();
+        const today = todayStr();
+        activities
+            .filter(a => a.category === '회의' && a.status === 'active' && a.startDate === today && a.meetingTime)
+            .forEach(a => {
+                const [h, mi] = a.meetingTime.split(':').map(Number);
+                const mt = new Date(); mt.setHours(h, mi, 0, 0);
+                const diffMin = (mt - now) / 60000;
+                const key = `${a.id}_${today}`;
+                if (diffMin > 0 && diffMin <= 30 && !notified.has(key)) {
+                    notified.add(key);
+                    saveNotified();
+                    showMeetingPopup(a, Math.round(diffMin));
+                }
+            });
+    }
+
+    function showMeetingPopup(a, minLeft) {
+        const place = (a.meetingPlace && a.meetingPlace !== '추후지정') ? `📍 ${a.meetingPlace}` : '📍 장소 추후지정';
+        document.getElementById('mp-body').innerHTML =
+            `<b>${a.content}</b><br>⏰ ${a.meetingTime} 시작 (약 ${minLeft}분 후)<br>${place}<br>👤 ${a.manager}`;
+        document.getElementById('meet-popup').style.display = 'block';
+
+        // 브라우저 알림 (권한 허용 시 — 다른 탭 작업 중에도 OS 알림 표시)
+        if ('Notification' in window && Notification.permission === 'granted') {
+            new Notification('🔔 회의 30분 전', {
+                body: `${a.meetingTime} ${a.content} (${a.meetingPlace || '장소 추후지정'})`
+            });
+        }
+        // 짧은 알림음
+        try {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = ctx.createOscillator(), g = ctx.createGain();
+            osc.connect(g); g.connect(ctx.destination);
+            osc.frequency.value = 880; g.gain.value = 0.08;
+            osc.start(); osc.stop(ctx.currentTime + 0.25);
+        } catch (e) { /* 무음 환경 무시 */ }
+    }
+
+    window.enableNotify = () => {
+        if (!('Notification' in window)) { alert('이 브라우저는 알림을 지원하지 않습니다.'); return; }
+        Notification.requestPermission().then(updateBellBtn);
+    };
+    function updateBellBtn() {
+        const btn = document.getElementById('bell-btn');
+        if ('Notification' in window && Notification.permission === 'granted') {
+            btn.textContent = '🔔 알림 ON';
+            btn.classList.add('on');
+        }
+    }
+
+    setInterval(checkMeetings, 30000);   // 30초마다 회의 알림 점검
     setInterval(() => { document.getElementById('clock').innerText = new Date().toLocaleString('ko-KR'); }, 1000);
+
+    // 날짜가 바뀌면(자정 경과) 자동 재계산 — 게시판/캘린더 최신 유지
+    let lastDay = todayStr();
+    setInterval(() => {
+        if (todayStr() !== lastDay) { lastDay = todayStr(); location.reload(); }
+    }, 60000);
 </script>
 </body>
 </html>
