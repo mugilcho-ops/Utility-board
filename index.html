@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Utility Team Master v12.0</title>
+    <title>Utility Team Master v12.1</title>
     <style>
         :root {
             --posco-blue: #004b91;
@@ -95,6 +95,9 @@
         .item-btns { display: flex; gap: 2px; margin-top: 2px; }
         .btn-tiny { font-size: 0.55rem; padding: 2px 4px; cursor: pointer; border: none; border-radius: 2px; color: white; white-space: nowrap; }
         .item-center-content { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+        .item-memo { font-size: 0.62rem; color: #555; background: #f6f8fa; border: 1px solid #e8ecf0; border-radius: 3px; padding: 2px 5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .item-memo a, .summary-item a { color: #1a5bbf; font-weight: 700; text-decoration: none; }
+        .item-memo a:hover, .summary-item a:hover { text-decoration: underline; }
 
         .tag { font-size: 0.58rem; padding: 1px 4px; border-radius: 3px; font-weight: bold; flex-shrink: 0; display: inline-block; }
         .tag-중요 { background: #fff1f0; color: #cf1322; }
@@ -125,7 +128,7 @@
 <body>
 
 <header>
-    <div style="font-weight: 900;">POSCO E&C <span style="font-weight: 300;">Utility Team Master v12.0</span></div>
+    <div style="font-weight: 900;">POSCO E&C <span style="font-weight: 300;">Utility Team Master v12.1</span></div>
     <div style="display:flex; align-items:center; gap:12px;">
         <button class="bell-btn" id="bell-btn" onclick="enableNotify()">🔔 브라우저 알림 켜기</button>
         <div id="clock" style="font-size: 0.8rem;"></div>
@@ -153,6 +156,10 @@
         <input type="date" id="g-s">
         <span class="date-end-wrap" id="g-end-wrap">완료 <input type="date" id="g-e"></span>
         <button class="add-btn" onclick="addAct()">등록</button>
+    </div>
+    <div class="reg-row">
+        <span style="font-size:0.75rem; color:#666; font-weight:700;">📎 메모</span>
+        <input type="text" id="g-memo" placeholder="(선택) 영상회의 링크, 참고자료 위치, 준비사항 등">
     </div>
     <div class="meeting-extra reg-row" id="g-meet">
         <label>🕐 시작시간 <select id="g-mtime"></select></label>
@@ -206,6 +213,10 @@
         <div class="modal-field">
             <label>📝 업무 내용</label>
             <input type="text" id="edit-content" placeholder="업무 내용을 입력하세요">
+        </div>
+        <div class="modal-field">
+            <label>📎 메모</label>
+            <input type="text" id="edit-memo" placeholder="영상회의 링크, 참고사항 등 (선택)">
         </div>
         <div style="display:flex; gap:8px;">
             <div class="modal-field" style="flex:1;">
@@ -314,6 +325,19 @@
     // ── 정렬 키: 날짜 + 회의시간 (시간 순서 정렬) ──
     const sortKey = a => `${a.startDate || '9999'}_${a.meetingTime || '00:00'}`;
 
+    // ── 메모 유틸: HTML 이스케이프 + URL 자동 링크화 ──
+    const escapeHtml = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    const linkifyMemo = t => escapeHtml(t).replace(/(https?:\/\/[^\s]+)/g,
+        '<a href="$1" target="_blank" rel="noopener">🔗 링크 열기</a>');
+    // 요약용: URL 있으면 🔗 아이콘 링크, 없으면 📎 툴팁
+    function memoIcon(a) {
+        if (!a.memo) return '';
+        const m = a.memo.match(/https?:\/\/[^\s]+/);
+        return m
+            ? ` <a href="${escapeHtml(m[0])}" target="_blank" rel="noopener" title="${escapeHtml(a.memo)}">🔗</a>`
+            : ` <span title="${escapeHtml(a.memo)}" style="cursor:help;">📎</span>`;
+    }
+
     window.onload = () => {
         const tw = getWeekRange(0);
         const nw = getWeekRange(1);
@@ -408,10 +432,13 @@
             payload.meetingTime  = document.getElementById('g-mtime').value  || '';
             payload.meetingPlace = document.getElementById('g-mplace').value || '추후지정';
         }
+        const memo = document.getElementById('g-memo').value.trim();
+        if (memo) payload.memo = memo;
         push(actRef, payload);
 
-        document.getElementById('g-txt').value = '';
-        document.getElementById('g-e').value   = '';
+        document.getElementById('g-txt').value  = '';
+        document.getElementById('g-e').value    = '';
+        document.getElementById('g-memo').value = '';
     };
 
     // ── 화면 갱신 ──
@@ -444,7 +471,7 @@
                         <span>
                             <span class="tag tag-${a.category}">${a.category}</span>
                             <b>[${a.manager}]</b> ${a.content}
-                            ${a.meetingTime ? ` ⏰${a.meetingTime}` : ''}${placeDisp}
+                            ${a.meetingTime ? ` ⏰${a.meetingTime}` : ''}${placeDisp}${memoIcon(a)}
                         </span>
                         <input type="checkbox" ${a.showOnCal ? 'checked' : ''} onchange="toggleCal('${a.id}',this.checked)">
                     </div>`;
@@ -499,6 +526,7 @@
             <div class="item-center-content">
                 <span class="tag tag-${a.category}">${a.category}</span>
                 <span style="font-size:0.78rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${a.content}">${a.content}</span>
+                ${a.memo ? `<div class="item-memo" title="${escapeHtml(a.memo)}">📎 ${linkifyMemo(a.memo)}</div>` : ''}
             </div>`;
         el.appendChild(item);
     }
@@ -511,6 +539,7 @@
         document.getElementById('edit-manager-display').value = a.manager;
         document.getElementById('edit-category').value        = a.category;
         document.getElementById('edit-content').value         = a.content;
+        document.getElementById('edit-memo').value            = a.memo || '';
         document.getElementById('edit-start').value           = a.startDate;
         document.getElementById('edit-end').value             = a.dueDate;
         document.getElementById('edit-showCal').checked       = !!a.showOnCal;
@@ -554,6 +583,7 @@
             content:   content,
             startDate: startDate,
             dueDate:   endDate,
+            memo:      document.getElementById('edit-memo').value.trim() || null,
             showOnCal: document.getElementById('edit-showCal').checked
         };
         if (isMeeting) {
@@ -625,7 +655,7 @@
                         const placeLabel = (a.category === '회의' && a.meetingPlace && a.meetingPlace !== '추후지정') ? ` @${a.meetingPlace}` : '';
                         const col = mColors[managers.indexOf(a.manager)] || '#888';
                         const pastCls = a.dueDate < today ? 'past' : (a.status === 'done' ? 'done-ev' : '');
-                        evs += `<div class="cal-event ${pastCls}" style="background:${col}" title="[${a.manager}] ${a.content}${placeLabel}">${timeLabel}${a.content}</div>`;
+                        evs += `<div class="cal-event ${pastCls}" style="background:${col}" title="[${a.manager}] ${a.content}${placeLabel}${a.memo ? ' 📎' + a.memo : ''}">${timeLabel}${a.content}</div>`;
                     });
                 cells += `<div class="cal-cell ${isToday ? 'today-cell' : ''}"><b>${cell.d}</b>${evs}</div>`;
             });
@@ -668,8 +698,9 @@
 
     function showMeetingPopup(a, minLeft) {
         const place = (a.meetingPlace && a.meetingPlace !== '추후지정') ? `📍 ${a.meetingPlace}` : '📍 장소 추후지정';
+        const memoLine = a.memo ? `<br>📎 ${linkifyMemo(a.memo)}` : '';
         document.getElementById('mp-body').innerHTML =
-            `<b>${a.content}</b><br>⏰ ${a.meetingTime} 시작 (약 ${minLeft}분 후)<br>${place}<br>👤 ${a.manager}`;
+            `<b>${a.content}</b><br>⏰ ${a.meetingTime} 시작 (약 ${minLeft}분 후)<br>${place}<br>👤 ${a.manager}${memoLine}`;
         document.getElementById('meet-popup').style.display = 'block';
 
         // 브라우저 알림 (권한 허용 시 — 다른 탭 작업 중에도 OS 알림 표시)
