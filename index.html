@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Utility Team Master v12.1</title>
+    <title>Utility Team Master v12.2</title>
     <style>
         :root {
             --posco-blue: #004b91;
@@ -123,13 +123,18 @@
         #meet-popup .mp-title { font-size: 1rem; font-weight: 900; color: #cf1322; margin-bottom: 10px; }
         #meet-popup .mp-body { font-size: 0.88rem; color: #333; line-height: 1.6; background: #fff1f0; border-radius: 8px; padding: 10px; margin-bottom: 14px; }
         #meet-popup button { background: #cf1322; color: white; border: none; border-radius: 6px; padding: 8px 28px; font-weight: 700; cursor: pointer; font-size: 0.85rem; }
+
+        /* ─────────── 저장 확인 토스트 ─────────── */
+        #toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #2d3436; color: #fff; padding: 9px 20px; border-radius: 20px; font-size: 0.78rem; font-weight: 600; z-index: 4000; opacity: 0; transition: opacity 0.3s; pointer-events: none; box-shadow: 0 4px 14px rgba(0,0,0,0.3); }
+        #toast.show { opacity: 0.95; }
     </style>
 </head>
 <body>
 
 <header>
-    <div style="font-weight: 900;">POSCO E&C <span style="font-weight: 300;">Utility Team Master v12.1</span></div>
+    <div style="font-weight: 900;">POSCO E&C <span style="font-weight: 300;">Utility Team Master v12.2</span></div>
     <div style="display:flex; align-items:center; gap:12px;">
+        <span id="conn-dot" style="font-size:0.72rem; padding:3px 10px; border-radius:12px; background:rgba(255,255,255,0.15);">⏳ 연결 확인 중</span>
         <button class="bell-btn" id="bell-btn" onclick="enableNotify()">🔔 브라우저 알림 켜기</button>
         <div id="clock" style="font-size: 0.8rem;"></div>
     </div>
@@ -259,6 +264,9 @@
     <button onclick="document.getElementById('meet-popup').style.display='none'">확인</button>
 </div>
 
+<!-- ── 저장 확인 토스트 ── -->
+<div id="toast"></div>
+
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getDatabase, ref, onValue, remove, push, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
@@ -303,6 +311,30 @@
 
     let activities = [];
     let curDate    = new Date();
+
+    // ── 서버 저장 추적: Local Echo로 인한 유실 방지의 핵심 ──
+    // push/update는 화면에 '먼저' 반영되고 서버 저장은 나중에 완료됨.
+    // 서버 ACK를 받기 전에 탭을 닫으면 데이터가 유실되므로, 완료 여부를 추적·표시한다.
+    let pendingWrites = 0;
+    let toastTimer;
+    function showToast(msg) {
+        const t = document.getElementById('toast');
+        t.textContent = msg;
+        t.classList.add('show');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => t.classList.remove('show'), 2500);
+    }
+    function trackWrite(promise, label) {
+        pendingWrites++;
+        showToast(`⏳ ${label} — 서버 저장 중...`);
+        promise
+            .then(() => { pendingWrites--; showToast(`✅ ${label} — 서버 저장 완료`); })
+            .catch(err => { pendingWrites--; alert(`❌ ${label} 실패!\n네트워크를 확인하고 다시 시도하세요.\n(${err.message})`); });
+    }
+    // 서버 저장이 끝나기 전에 창을 닫으면 경고
+    window.addEventListener('beforeunload', (e) => {
+        if (pendingWrites > 0) { e.preventDefault(); e.returnValue = ''; }
+    });
 
     // ── 날짜 유틸 (문자열 비교, timezone 오류 방지) ──
     const toStr = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
@@ -364,6 +396,15 @@
             activities = data ? Object.keys(data).map(k => ({ id: k, ...data[k] })) : [];
             refreshUI();
             checkMeetings();   // 데이터 수신 직후에도 한 번 점검
+        });
+
+        // ── 서버 연결 상태 표시 (오프라인이면 등록 자체를 막음) ──
+        onValue(ref(db, '.info/connected'), snap => {
+            const ok = snap.val() === true;
+            const el = document.getElementById('conn-dot');
+            el.textContent = ok ? '🟢 서버 연결됨' : '🔴 오프라인 — 저장 안 됨!';
+            el.style.background = ok ? 'rgba(82,196,26,0.3)' : 'rgba(255,77,79,0.5)';
+            window._isConnected = ok;
         });
 
         // 알림 버튼 상태 초기화
@@ -434,7 +475,12 @@
         }
         const memo = document.getElementById('g-memo').value.trim();
         if (memo) payload.memo = memo;
-        push(actRef, payload);
+
+        if (window._isConnected === false) {
+            alert("⚠️ 현재 서버에 연결되어 있지 않습니다.\n네트워크 연결 후 다시 등록하세요. (지금 등록하면 유실될 수 있습니다)");
+            return;
+        }
+        trackWrite(push(actRef, payload), '일정 등록');
 
         document.getElementById('g-txt').value  = '';
         document.getElementById('g-e').value    = '';
@@ -453,6 +499,7 @@
             .slice()
             .sort((a, b) => sortKey(a).localeCompare(sortKey(b)))
             .forEach(a => {
+                if (a.deleted) return;   // 소프트 삭제 항목 제외
                 if (!a.manager || !a.startDate || !a.dueDate) return;
                 const mIdx = managers.indexOf(a.manager);
                 if (mIdx < 0) return;
@@ -593,13 +640,18 @@
             updates.meetingTime  = null;
             updates.meetingPlace = null;
         }
-        update(ref(db, `activities/${id}`), updates);
+        trackWrite(update(ref(db, `activities/${id}`), updates), '일정 수정');
         closeEdit();
     };
 
-    window.toggleStat = (id, s) => update(ref(db, `activities/${id}`), { status: s === 'done' ? 'active' : 'done' });
-    window.delAct     = (id) => { if (confirm("이 일정을 삭제할까요?\n(지난 일정은 삭제하지 않아도 게시판에서 자동으로 사라지고 캘린더에는 남습니다)")) remove(ref(db, `activities/${id}`)); };
-    window.toggleCal  = (id, chk) => update(ref(db, `activities/${id}`), { showOnCal: chk });
+    window.toggleStat = (id, s) => trackWrite(update(ref(db, `activities/${id}`), { status: s === 'done' ? 'active' : 'done' }), '완료 상태 변경');
+    // ── 소프트 삭제: DB에서 지우지 않고 deleted 플래그만 기록 (Firebase Console에서 언제든 복구 가능) ──
+    window.delAct = (id) => {
+        if (confirm("이 일정을 삭제할까요?\n(삭제된 일정은 DB에 보존되며 관리자가 복구할 수 있습니다)")) {
+            trackWrite(update(ref(db, `activities/${id}`), { deleted: true, deletedAt: new Date().toISOString() }), '일정 삭제');
+        }
+    };
+    window.toggleCal = (id, chk) => trackWrite(update(ref(db, `activities/${id}`), { showOnCal: chk }), '캘린더 표시 변경');
 
     // ── 캘린더: 주 단위 가변 크기 렌더링 ──
     function renderCalendar() {
@@ -648,7 +700,7 @@
                 const isToday = cell.ds === today;
                 let evs = '';
                 activities
-                    .filter(a => a.showOnCal && a.startDate && a.dueDate && cell.ds >= a.startDate && cell.ds <= a.dueDate)
+                    .filter(a => !a.deleted && a.showOnCal && a.startDate && a.dueDate && cell.ds >= a.startDate && cell.ds <= a.dueDate)
                     .sort((a, b) => sortKey(a).localeCompare(sortKey(b)))
                     .forEach(a => {
                         const timeLabel  = (a.category === '회의' && a.meetingTime) ? `${a.meetingTime} ` : '';
@@ -682,7 +734,7 @@
         const now   = new Date();
         const today = todayStr();
         activities
-            .filter(a => a.category === '회의' && a.status === 'active' && a.startDate === today && a.meetingTime)
+            .filter(a => !a.deleted && a.category === '회의' && a.status === 'active' && a.startDate === today && a.meetingTime)
             .forEach(a => {
                 const [h, mi] = a.meetingTime.split(':').map(Number);
                 const mt = new Date(); mt.setHours(h, mi, 0, 0);
