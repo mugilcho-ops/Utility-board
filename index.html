@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Utility Team Master v12.2</title>
+    <title>Utility Team Master v12.3</title>
     <style>
         :root {
             --posco-blue: #004b91;
@@ -26,6 +26,8 @@
         .cal-cell { background: white; padding: 4px; box-sizing: border-box; overflow: hidden; min-width: 0; }
         .cal-cell.today-cell { background: #fffbe6; outline: 2px solid #faad14; outline-offset: -2px; }
         .cal-cell b { font-size: 0.75rem; display: inline-block; }
+        .cal-cell.other-month { background: #fafafa; }
+        .cal-cell.other-month b { color: #bbb; }
 
         /* 주 단위 크기: 이번주 100% / 다음주 60% / 나머지 30% */
         .wk-cur   .cal-cell { min-height: 110px; }
@@ -39,6 +41,8 @@
         .wk-other .cal-event { height: 4px; padding: 0; border-radius: 2px; font-size: 0; }
         .cal-event.past { opacity: 0.45; }
         .cal-event.done-ev { opacity: 0.45; text-decoration: line-through; }
+        .cal-event.milestone-ev { box-shadow: 0 0 0 1px #ff0000 inset; font-weight: 800; }
+        .ms-star { color: #ff0000; }
 
         /* ─────────── 등록 바 ─────────── */
         .reg-bar { max-width: 1600px; margin: 0 auto 16px; padding: 10px 14px; background: white; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); display: flex; flex-direction: column; gap: 6px; box-sizing: border-box; }
@@ -51,6 +55,20 @@
         .meeting-extra { display: none; background: #eef4ff; border: 1px solid #b8cff5; border-radius: 5px; padding: 5px 8px; gap: 10px; align-items: center; flex-wrap: wrap; font-size: 0.75rem; }
         .meeting-extra.visible { display: flex; }
         .meeting-extra label { color: #003a7a; font-weight: 700; gap: 4px; display: flex; align-items: center; }
+        .milestone-check { display: flex; align-items: center; gap: 4px; font-weight: 700; color: #ad2102; background: #fff2e8; border: 1px solid #ffbb96; border-radius: 5px; padding: 4px 8px; }
+        .milestone-check input { width: auto; }
+
+        /* ─────────── 지난 일정 (Past) ─────────── */
+        #past-details { max-width: 1600px; margin: 4px auto 24px; padding: 10px 18px; background: white; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); box-sizing: border-box; }
+        #past-details summary { cursor: pointer; font-weight: 800; color: #888; font-size: 0.85rem; list-style: none; }
+        #past-details summary::-webkit-details-marker { display: none; }
+        #past-details summary::before { content: '▶ '; }
+        #past-details[open] summary::before { content: '▼ '; }
+        #past-list { display: flex; flex-direction: column; gap: 4px; margin-top: 10px; max-height: 400px; overflow-y: auto; }
+        .past-item { display: flex; align-items: center; gap: 8px; padding: 5px 8px; background: #fafafa; border: 1px solid #eee; border-radius: 4px; font-size: 0.75rem; opacity: 0.8; }
+        .past-item .p-mgr { flex-shrink: 0; font-weight: 800; color: white; padding: 1px 6px; border-radius: 3px; font-size: 0.65rem; }
+        .past-item .p-date { flex-shrink: 0; color: #888; font-size: 0.68rem; width: 90px; }
+        .past-item .p-content { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
         /* ─────────── 주요 Activity 요약 ─────────── */
         .summary-container { max-width: 1600px; margin: 0 auto 20px; display: flex; gap: 15px; padding: 0 20px; box-sizing: border-box; }
@@ -132,7 +150,7 @@
 <body>
 
 <header>
-    <div style="font-weight: 900;">POSCO E&C <span style="font-weight: 300;">Utility Team Master v12.2</span></div>
+    <div style="font-weight: 900;">POSCO E&C <span style="font-weight: 300;">Utility Team Master v12.3</span></div>
     <div style="display:flex; align-items:center; gap:12px;">
         <span id="conn-dot" style="font-size:0.72rem; padding:3px 10px; border-radius:12px; background:rgba(255,255,255,0.15);">⏳ 연결 확인 중</span>
         <button class="bell-btn" id="bell-btn" onclick="enableNotify()">🔔 브라우저 알림 켜기</button>
@@ -155,8 +173,11 @@
     <div class="reg-row">
         <b style="color:var(--posco-blue); font-size:0.8rem;">➕ 일정 등록</b>
         <select id="g-mgr"></select>
-        <select id="g-cat" onchange="toggleMeetingExtra()"></select>
+        <select id="g-cat" onchange="updateDateMode()"></select>
         <input type="text" id="g-txt" placeholder="업무내용">
+        <label class="milestone-check">
+            <input type="checkbox" id="g-milestone" onchange="updateDateMode()"> 🎯 마일스톤
+        </label>
         <span id="g-start-label">시작</span>
         <input type="date" id="g-s">
         <span class="date-end-wrap" id="g-end-wrap">완료 <input type="date" id="g-e"></span>
@@ -183,7 +204,7 @@
         <div id="sum-this"></div>
     </div>
     <div class="summary-box next">
-        <div class="summary-title">📅 Next Week 주요 Activity</div>
+        <div class="summary-title">🔭 향후 주요 Activity (이번주 이후 등록된 모든 일정)</div>
         <div id="sum-next" style="color:#0050b3;"></div>
     </div>
 </div>
@@ -197,6 +218,12 @@
 </div>
 
 <div class="container" id="person-rows"></div>
+
+<!-- ── 지난 일정: 기한이 지나도 삭제되지 않고 항상 확인 가능 ── -->
+<details id="past-details">
+    <summary>🗄 지난 일정 보기 (<span id="past-count">0</span>건) — 완료 여부와 무관하게 지난 일정을 계속 확인할 수 있습니다</summary>
+    <div id="past-list"></div>
+</details>
 
 <!-- ── 수정 모달 ── -->
 <div id="modal-overlay" onclick="closeEdit()"></div>
@@ -214,6 +241,10 @@
         <div class="modal-field">
             <label>🏷️ 카테고리</label>
             <select id="edit-category" onchange="onEditCatChange()"></select>
+        </div>
+        <div style="display:flex; align-items:center; gap:8px; font-size:0.82rem;">
+            <input type="checkbox" id="edit-milestone" style="width:auto;" onchange="onEditCatChange()">
+            <label for="edit-milestone" style="cursor:pointer; color:#ad2102; font-weight:700;">🎯 마일스톤 (완료 목표일 — 달력에 빨간 별 표시)</label>
         </div>
         <div class="modal-field">
             <label>📝 업무 내용</label>
@@ -439,12 +470,14 @@
         });
     }
 
-    // ── 등록 바: 회의 선택 시 시간·장소 표시 & 종료일 숨김 ──
-    window.toggleMeetingExtra = () => {
-        const isMeeting = document.getElementById('g-cat').value === '회의';
+    // ── 등록 바: 회의/마일스톤 선택 시 종료일 숨김(단일 날짜 모드) ──
+    window.updateDateMode = () => {
+        const isMeeting   = document.getElementById('g-cat').value === '회의';
+        const isMilestone = document.getElementById('g-milestone').checked;
+        const singleDate  = isMeeting || isMilestone;
         document.getElementById('g-meet').classList.toggle('visible', isMeeting);
-        document.getElementById('g-end-wrap').classList.toggle('hidden', isMeeting);
-        document.getElementById('g-start-label').textContent = isMeeting ? '날짜' : '시작';
+        document.getElementById('g-end-wrap').classList.toggle('hidden', singleDate);
+        document.getElementById('g-start-label').textContent = isMeeting ? '날짜' : (isMilestone ? '목표일' : '시작');
     };
 
     window.addAct = () => {
@@ -452,12 +485,14 @@
         const c   = document.getElementById('g-cat').value;
         const t   = document.getElementById('g-txt').value.trim();
         const s   = document.getElementById('g-s').value;
-        const isMeeting = c === '회의';
-        const e = isMeeting ? s : document.getElementById('g-e').value;
+        const isMeeting   = c === '회의';
+        const isMilestone = document.getElementById('g-milestone').checked;
+        const singleDate  = isMeeting || isMilestone;
+        const e = singleDate ? s : document.getElementById('g-e').value;
 
-        if (!t || !s)         { alert("내용과 날짜를 입력하세요!"); return; }
-        if (!isMeeting && !e) { alert("종료일을 입력하세요!"); return; }
-        if (e < s)            { alert("종료일이 시작일보다 빠릅니다!"); return; }
+        if (!t || !s)          { alert("내용과 날짜를 입력하세요!"); return; }
+        if (!singleDate && !e) { alert("종료일을 입력하세요!"); return; }
+        if (e < s)             { alert("종료일이 시작일보다 빠릅니다!"); return; }
 
         const payload = {
             manager:   mgr,
@@ -466,6 +501,7 @@
             startDate: s,
             dueDate:   e,
             status:    'active',
+            milestone: isMilestone,
             showOnCal: true,   // ★ 기본 표시: 등록 즉시 캘린더에서 확인 가능 (사라짐 방지)
             createdAt: new Date().toISOString()
         };
@@ -482,9 +518,11 @@
         }
         trackWrite(push(actRef, payload), '일정 등록');
 
-        document.getElementById('g-txt').value  = '';
-        document.getElementById('g-e').value    = '';
-        document.getElementById('g-memo').value = '';
+        document.getElementById('g-txt').value       = '';
+        document.getElementById('g-e').value         = '';
+        document.getElementById('g-memo').value      = '';
+        document.getElementById('g-milestone').checked = false;
+        updateDateMode();
     };
 
     // ── 화면 갱신 ──
@@ -494,6 +532,7 @@
         const tw = getWeekRange(0);
         const nw = getWeekRange(1);
         let sTD = '', sTW = '', sNW = '';
+        const pastItems = [];   // ★ 지난 일정 모음 (게시판에서 사라지지 않고 별도 패널에 계속 표시)
 
         activities
             .slice()
@@ -504,19 +543,22 @@
                 const mIdx = managers.indexOf(a.manager);
                 if (mIdx < 0) return;
 
-                const expired = a.dueDate < today;          // ★ 종료 다음날부터 게시판 제외 (DB·캘린더에는 유지)
-                const inToday = !expired && a.startDate <= today;
-                const inTW    = !expired && !inToday && overlaps(a.startDate, a.dueDate, tw.monStr, tw.sunStr);
-                const inNW    = overlaps(a.startDate, a.dueDate, nw.monStr, nw.sunStr);
+                const expired = a.dueDate < today;
+                if (expired) { pastItems.push(a); return; }   // ★ 지난 일정은 별도 패널로 (사라지지 않음)
 
-                // 요약 (중요/이벤트/회의, 진행중)
-                if (['중요','이벤트','회의'].includes(a.category) && a.status === 'active' && !expired) {
+                const inToday   = a.startDate <= today;
+                const inTW      = !inToday && overlaps(a.startDate, a.dueDate, tw.monStr, tw.sunStr);
+                const isFuture  = a.startDate > tw.sunStr;   // ★ 이번주 이후 등록된 모든 일정 (다음주 한정 아님)
+
+                // 요약 (중요/이벤트/회의 또는 마일스톤, 진행중)
+                if ((['중요','이벤트','회의'].includes(a.category) || a.milestone) && a.status === 'active') {
                     const placeDisp = a.meetingPlace === '추후지정'
                         ? ` <span class="badge-tbd">⏳추후지정</span>`
                         : (a.meetingPlace ? ` 📍${a.meetingPlace}` : '');
+                    const msStar = a.milestone ? `<span class="ms-star">★</span> ` : '';
                     const html = `<div class="summary-item">
                         <span>
-                            <span class="tag tag-${a.category}">${a.category}</span>
+                            ${msStar}<span class="tag tag-${a.category}">${a.category}</span>
                             <b>[${a.manager}]</b> ${a.content}
                             ${a.meetingTime ? ` ⏰${a.meetingTime}` : ''}${placeDisp}${memoIcon(a)}
                         </span>
@@ -524,10 +566,11 @@
                     </div>`;
                     if (inToday) sTD += html;
                     else if (inTW) sTW += html;
-                    if (inNW) sNW += html;   // 다음주 겹침 일정은 모두 표시 (이번주→다음주 걸친 일정 포함)
+                    if (isFuture) sNW += html;   // ★ 이번주 이후 등록된 모든 일정 (향후 주요 Activity)
                 }
 
-                // 게시판 패널
+                // 게시판 패널 (오늘 / 이번주 / 다음주)
+                const inNW = overlaps(a.startDate, a.dueDate, nw.monStr, nw.sunStr);
                 if (inToday) createItem('TD', mIdx, a);
                 else if (inTW) createItem('TW', mIdx, a);
                 if (inNW) createItem('NW', mIdx, a);
@@ -541,7 +584,40 @@
         document.querySelectorAll('[id^="list-"]').forEach(el => {
             if (!el.children.length) el.innerHTML = '<div class="empty-hint">—</div>';
         });
+
+        renderPastList(pastItems);
         renderCalendar();
+    }
+
+    // ── 지난 일정 패널: 최신순(가장 최근에 지난 것부터) 정렬하여 계속 확인 가능하게 표시 ──
+    function renderPastList(items) {
+        const wrap = document.getElementById('past-list');
+        document.getElementById('past-count').textContent = items.length;
+        if (!items.length) { wrap.innerHTML = '<div class="empty-hint">지난 일정이 없습니다</div>'; return; }
+
+        wrap.innerHTML = '';
+        items
+            .sort((a, b) => sortKey(b).localeCompare(sortKey(a)))   // 최근 지난 순
+            .forEach(a => {
+                const mIdx = managers.indexOf(a.manager);
+                const col  = mColors[mIdx] || '#888';
+                const dateDisp = (a.category === '회의') ? a.startDate : `${a.startDate} ~ ${a.dueDate}`;
+                const msStar = a.milestone ? `<span class="ms-star">★</span> ` : '';
+                const el = document.createElement('div');
+                el.className = 'past-item';
+                el.innerHTML = `
+                    <span class="p-mgr" style="background:${col}">${a.manager}</span>
+                    <span class="p-date">${dateDisp}</span>
+                    <span class="tag tag-${a.category}">${a.category}</span>
+                    <span class="p-content" title="${escapeHtml(a.content)}">${msStar}${a.content}</span>
+                    ${a.memo ? `<span class="item-memo" title="${escapeHtml(a.memo)}">📎</span>` : ''}
+                    <div class="item-btns">
+                        <button class="btn-tiny" style="background:#004b91" onclick="openEdit('${a.id}')">수정</button>
+                        <button class="btn-tiny" style="background:#52c41a" onclick="toggleStat('${a.id}','${a.status}')">${a.status === 'done' ? '재개' : '완료'}</button>
+                        <button class="btn-tiny" style="background:#ff4d4f" onclick="delAct('${a.id}')">삭제</button>
+                    </div>`;
+                wrap.appendChild(el);
+            });
     }
 
     function createItem(prefix, mIdx, a) {
@@ -572,7 +648,7 @@
             </div>
             <div class="item-center-content">
                 <span class="tag tag-${a.category}">${a.category}</span>
-                <span style="font-size:0.78rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${a.content}">${a.content}</span>
+                <span style="font-size:0.78rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${a.content}">${a.milestone ? '<span class="ms-star">★</span> ' : ''}${a.content}</span>
                 ${a.memo ? `<div class="item-memo" title="${escapeHtml(a.memo)}">📎 ${linkifyMemo(a.memo)}</div>` : ''}
             </div>`;
         el.appendChild(item);
@@ -587,13 +663,15 @@
         document.getElementById('edit-category').value        = a.category;
         document.getElementById('edit-content').value         = a.content;
         document.getElementById('edit-memo').value            = a.memo || '';
+        document.getElementById('edit-milestone').checked     = !!a.milestone;
         document.getElementById('edit-start').value           = a.startDate;
         document.getElementById('edit-end').value             = a.dueDate;
         document.getElementById('edit-showCal').checked       = !!a.showOnCal;
 
         const isMeeting = a.category === '회의';
+        const singleDate = isMeeting || !!a.milestone;
         document.getElementById('edit-meeting-fields').style.display = isMeeting ? 'block' : 'none';
-        document.getElementById('modal-end-row').classList.toggle('hidden', isMeeting);
+        document.getElementById('modal-end-row').classList.toggle('hidden', singleDate);
         if (isMeeting) {
             document.getElementById('edit-time').value      = a.meetingTime || '';
             document.getElementById('edit-place').innerHTML = buildPlaceOptions(a.meetingPlace || '추후지정');
@@ -603,9 +681,10 @@
     };
 
     window.onEditCatChange = () => {
-        const isMeeting = document.getElementById('edit-category').value === '회의';
+        const isMeeting   = document.getElementById('edit-category').value === '회의';
+        const isMilestone = document.getElementById('edit-milestone').checked;
         document.getElementById('edit-meeting-fields').style.display = isMeeting ? 'block' : 'none';
-        document.getElementById('modal-end-row').classList.toggle('hidden', isMeeting);
+        document.getElementById('modal-end-row').classList.toggle('hidden', isMeeting || isMilestone);
     };
 
     window.closeEdit = () => {
@@ -616,13 +695,15 @@
     window.saveEdit = () => {
         const id  = document.getElementById('edit-id').value;
         const cat = document.getElementById('edit-category').value;
-        const isMeeting = cat === '회의';
+        const isMeeting   = cat === '회의';
+        const isMilestone = document.getElementById('edit-milestone').checked;
+        const singleDate  = isMeeting || isMilestone;
         const startDate = document.getElementById('edit-start').value;
-        const endDate   = isMeeting ? startDate : document.getElementById('edit-end').value;
+        const endDate   = singleDate ? startDate : document.getElementById('edit-end').value;
         const content   = document.getElementById('edit-content').value.trim();
 
         if (!content || !startDate) { alert("내용과 시작일을 입력하세요!"); return; }
-        if (!isMeeting && !endDate) { alert("종료일을 입력하세요!"); return; }
+        if (!singleDate && !endDate) { alert("종료일을 입력하세요!"); return; }
         if (endDate < startDate)    { alert("종료일이 시작일보다 빠릅니다!"); return; }
 
         const updates = {
@@ -631,6 +712,7 @@
             startDate: startDate,
             dueDate:   endDate,
             memo:      document.getElementById('edit-memo').value.trim() || null,
+            milestone: isMilestone,
             showOnCal: document.getElementById('edit-showCal').checked
         };
         if (isMeeting) {
@@ -673,30 +755,32 @@
         const nxtWkEnd   = toStr(new Date(wkSun.getFullYear(), wkSun.getMonth(), wkSun.getDate() + 13));
         const today = todayStr();
 
-        // 월을 주 단위 배열로 구성
-        const fDay  = new Date(y, m, 1).getDay();
-        const lDate = new Date(y, m+1, 0).getDate();
+        // ── 월을 주 단위 배열로 구성 ──
+        // ★ 전월 일정도 계속 볼 수 있도록, 이번 달 1일 기준 최소 2주(14일) 전부터 그리드 시작
+        //   (일요일 정렬을 위해 추가로 주 시작요일까지 보정 → 결과적으로 2~3주 전월분이 항상 표시됨)
+        const firstOfMonth = new Date(y, m, 1);
+        const gridStartRaw = new Date(firstOfMonth); gridStartRaw.setDate(firstOfMonth.getDate() - 14);
+        const gridStart = new Date(gridStartRaw); gridStart.setDate(gridStartRaw.getDate() - gridStart.getDay());
+        const lastOfMonth = new Date(y, m + 1, 0);
+        const gridEnd = new Date(lastOfMonth); gridEnd.setDate(lastOfMonth.getDate() + (6 - lastOfMonth.getDay()));
+
         const weeks = [];
-        let week = new Array(7).fill(null);
-        let col = fDay;
-        for (let d = 1; d <= lDate; d++) {
-            week[col] = { d, ds: `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}` };
-            col++;
-            if (col === 7) { weeks.push(week); week = new Array(7).fill(null); col = 0; }
+        let week = [];
+        for (let dt = new Date(gridStart); dt <= gridEnd; dt.setDate(dt.getDate() + 1)) {
+            week.push({ d: dt.getDate(), ds: toStr(dt), inMonth: dt.getMonth() === m });
+            if (week.length === 7) { weeks.push(week); week = []; }
         }
-        if (col > 0) weeks.push(week);
+        if (week.length) weeks.push(week);
 
         weeks.forEach(wk => {
             // 주 크기 결정: 이번주 100% / 다음주 60% / 나머지 30%
             let wkClass = 'wk-other';
             for (const cell of wk) {
-                if (!cell) continue;
                 if (cell.ds >= curWkStart && cell.ds <= curWkEnd) { wkClass = 'wk-cur'; break; }
                 if (cell.ds >= nxtWkStart && cell.ds <= nxtWkEnd) { wkClass = 'wk-next'; }
             }
             let cells = '';
             wk.forEach(cell => {
-                if (!cell) { cells += `<div class="cal-cell"></div>`; return; }
                 const isToday = cell.ds === today;
                 let evs = '';
                 activities
@@ -707,9 +791,11 @@
                         const placeLabel = (a.category === '회의' && a.meetingPlace && a.meetingPlace !== '추후지정') ? ` @${a.meetingPlace}` : '';
                         const col = mColors[managers.indexOf(a.manager)] || '#888';
                         const pastCls = a.dueDate < today ? 'past' : (a.status === 'done' ? 'done-ev' : '');
-                        evs += `<div class="cal-event ${pastCls}" style="background:${col}" title="[${a.manager}] ${a.content}${placeLabel}${a.memo ? ' 📎' + a.memo : ''}">${timeLabel}${a.content}</div>`;
+                        const msCls   = a.milestone ? 'milestone-ev' : '';
+                        const msStar  = a.milestone ? '<span class="ms-star">★</span> ' : '';
+                        evs += `<div class="cal-event ${pastCls} ${msCls}" style="background:${col}" title="[${a.manager}] ${a.content}${placeLabel}${a.memo ? ' 📎' + a.memo : ''}">${msStar}${timeLabel}${a.content}</div>`;
                     });
-                cells += `<div class="cal-cell ${isToday ? 'today-cell' : ''}"><b>${cell.d}</b>${evs}</div>`;
+                cells += `<div class="cal-cell ${isToday ? 'today-cell' : ''} ${cell.inMonth ? '' : 'other-month'}"><b>${cell.d}</b>${evs}</div>`;
             });
             html += `<div class="cal-week ${wkClass}">${cells}</div>`;
         });
