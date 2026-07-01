@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Utility Team Master v12.3</title>
+    <title>Utility Team Master v12.4</title>
     <style>
         :root {
             --posco-blue: #004b91;
@@ -150,7 +150,7 @@
 <body>
 
 <header>
-    <div style="font-weight: 900;">POSCO E&C <span style="font-weight: 300;">Utility Team Master v12.3</span></div>
+    <div style="font-weight: 900;">POSCO E&C <span style="font-weight: 300;">Utility Team Master v12.4</span></div>
     <div style="display:flex; align-items:center; gap:12px;">
         <span id="conn-dot" style="font-size:0.72rem; padding:3px 10px; border-radius:12px; background:rgba(255,255,255,0.15);">⏳ 연결 확인 중</span>
         <button class="bell-btn" id="bell-btn" onclick="enableNotify()">🔔 브라우저 알림 켜기</button>
@@ -713,7 +713,8 @@
             dueDate:   endDate,
             memo:      document.getElementById('edit-memo').value.trim() || null,
             milestone: isMilestone,
-            showOnCal: document.getElementById('edit-showCal').checked
+            showOnCal: document.getElementById('edit-showCal').checked,
+            updatedAt: new Date().toISOString()   // ★ Teams 수정 알림(Apps Script)이 변경 감지에 사용
         };
         if (isMeeting) {
             updates.meetingTime  = document.getElementById('edit-time').value  || '';
