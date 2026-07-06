@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Utility Team Master v12.6</title>
+    <title>Utility Team Master v12.7</title>
     <style>
         :root {
             --posco-blue: #004b91;
@@ -58,18 +58,6 @@
         .milestone-check { display: flex; align-items: center; gap: 4px; font-weight: 700; color: #ad2102; background: #fff2e8; border: 1px solid #ffbb96; border-radius: 5px; padding: 4px 8px; }
         .milestone-check input { width: auto; }
 
-        /* ─────────── 지난 일정 (Past) ─────────── */
-        #past-details { max-width: 1600px; margin: 4px auto 24px; padding: 10px 18px; background: white; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); box-sizing: border-box; }
-        #past-details summary { cursor: pointer; font-weight: 800; color: #888; font-size: 0.85rem; list-style: none; }
-        #past-details summary::-webkit-details-marker { display: none; }
-        #past-details summary::before { content: '▶ '; }
-        #past-details[open] summary::before { content: '▼ '; }
-        #past-list { display: flex; flex-direction: column; gap: 4px; margin-top: 10px; max-height: 400px; overflow-y: auto; }
-        .past-item { display: flex; align-items: center; gap: 8px; padding: 5px 8px; background: #fafafa; border: 1px solid #eee; border-radius: 4px; font-size: 0.75rem; opacity: 0.8; }
-        .past-item .p-mgr { flex-shrink: 0; font-weight: 800; color: white; padding: 1px 6px; border-radius: 3px; font-size: 0.65rem; }
-        .past-item .p-date { flex-shrink: 0; color: #888; font-size: 0.68rem; width: 90px; }
-        .past-item .p-content { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-
         /* ─────────── 주요 Activity 요약 ─────────── */
         .summary-container { max-width: 1600px; margin: 0 auto 20px; display: flex; gap: 15px; padding: 0 20px; box-sizing: border-box; }
         .summary-box { flex: 1; padding: 12px; border-radius: 8px; min-height: 80px; min-width: 0; }
@@ -89,10 +77,12 @@
         .person-label { width: 80px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; padding-top: 26px; }
         .person-label-inner { font-weight: 800; font-size: 0.8rem; color: white; padding: 6px 10px; border-radius: 6px; text-align: center; }
         .week-panel { flex: 1; min-width: 0; }
+        .week-panel.narrow { flex: 0.7; }
         .week-header { font-size: 0.72rem; font-weight: 800; padding-bottom: 4px; margin-bottom: 6px; }
         .week-header.today { color: #cf1322; border-bottom: 2px solid #cf1322; }
         .week-header.this  { color: var(--posco-blue); border-bottom: 2px solid var(--posco-blue); }
         .week-header.next  { color: #555; border-bottom: 2px solid #555; }
+        .week-header.past  { color: #aaa; border-bottom: 2px solid #ccc; }
 
         .eng-card { background: white; border-radius: 8px; padding: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); min-height: 36px; }
         .color-common { border-left: 6px solid #555; }
@@ -107,6 +97,7 @@
 
         .activity-item { display: flex; align-items: flex-start; padding: 5px 7px; margin-bottom: 3px; background: #fff; border: 1px solid #eee; border-radius: 4px; gap: 8px; }
         .activity-item.done { opacity: 0.4; background: #f9f9f9; }
+        .activity-item.past { opacity: 0.45; background: #fafafa; }
         .item-left-meta { display: flex; flex-direction: column; gap: 2px; width: 82px; flex-shrink: 0; }
         .item-dates { font-size: 0.58rem; color: #777; }
         .item-meeting-info { font-size: 0.58rem; color: #1a5bbf; font-weight: 600; }
@@ -150,7 +141,7 @@
 <body>
 
 <header>
-    <div style="font-weight: 900;">POSCO E&C <span style="font-weight: 300;">Utility Team Master v12.6</span></div>
+    <div style="font-weight: 900;">POSCO E&C <span style="font-weight: 300;">Utility Team Master v12.7</span></div>
     <div style="display:flex; align-items:center; gap:12px;">
         <span id="conn-dot" style="font-size:0.72rem; padding:3px 10px; border-radius:12px; background:rgba(255,255,255,0.15);">⏳ 연결 확인 중</span>
         <button class="bell-btn" id="bell-btn" onclick="enableNotify()">🔔 브라우저 알림 켜기</button>
@@ -212,18 +203,13 @@
 <!-- ── 게시판 헤더 ── -->
 <div style="max-width:1600px; margin: 0 auto 6px; padding: 0 20px; display: flex; gap: 12px; box-sizing:border-box;">
     <div style="width:80px; flex-shrink:0;"></div>
+    <div style="flex:0.7; font-weight:800; font-size:0.82rem; color:#aaa; text-align:center;">지난 일정</div>
     <div style="flex:1; font-weight:800; font-size:0.82rem; color:#cf1322; text-align:center;">TODAY</div>
     <div style="flex:1; font-weight:800; font-size:0.82rem; color:var(--posco-blue); text-align:center;">THIS WEEK 남은 일정 (<span id="range-this"></span>)</div>
     <div style="flex:1; font-weight:800; font-size:0.82rem; color:#555; text-align:center;">향후 예정 일정</div>
 </div>
 
 <div class="container" id="person-rows"></div>
-
-<!-- ── 지난 일정: 기한이 지나도 삭제되지 않고 항상 확인 가능 ── -->
-<details id="past-details">
-    <summary>🗄 지난 일정 보기 (<span id="past-count">0</span>건) — 완료 여부와 무관하게 지난 일정을 계속 확인할 수 있습니다</summary>
-    <div id="past-list"></div>
-</details>
 
 <!-- ── 수정 모달 ── -->
 <div id="modal-overlay" onclick="closeEdit()"></div>
@@ -440,10 +426,11 @@
         updateBellBtn();
     };
 
-    // ── 담당자별 행: 오늘 / 이번주 / 다음주 3패널 ──
+    // ── 담당자별 행: 지난 / 오늘 / 이번주 / 향후 4패널 ──
     function renderPersonRows() {
         const container = document.getElementById('person-rows');
         const panels = [
+            { prefix: 'PS', cls: 'past',  title: '지난 일정',           narrow: true },
             { prefix: 'TD', cls: 'today', title: '오늘' },
             { prefix: 'TW', cls: 'this',  title: '이번 주 (남은 일정)' },
             { prefix: 'NW', cls: 'next',  title: '향후 예정 일정' }
@@ -459,7 +446,7 @@
             const colorClass = i === 0 ? 'color-common' : `color-${i-1}`;
             panels.forEach(p => {
                 const panel = document.createElement('div');
-                panel.className = 'week-panel';
+                panel.className = 'week-panel' + (p.narrow ? ' narrow' : '');
                 panel.innerHTML = `<div class="week-header ${p.cls}">${p.title}</div>
                     <div class="eng-card ${colorClass}"><div id="list-${p.prefix}-${i}"></div></div>`;
                 row.appendChild(panel);
@@ -529,25 +516,23 @@
         const today = todayStr();
         const tw = getWeekRange(0);
         let sTD = '', sTW = '', sNW = '';
-        const pastItems = [];   // ★ 지난 일정 모음 (게시판에서 사라지지 않고 별도 패널에 계속 표시)
 
         activities
             .slice()
             .sort((a, b) => sortKey(a).localeCompare(sortKey(b)))
             .forEach(a => {
-                if (a.deleted) return;   // 소프트 삭제 항목 제외
+                if (a.deleted) return;   // 사용자가 직접 삭제한 항목만 제외
                 if (!a.manager || !a.startDate || !a.dueDate) return;
                 const mIdx = managers.indexOf(a.manager);
                 if (mIdx < 0) return;
 
-                const expired = a.dueDate < today;
-                if (expired) { pastItems.push(a); return; }   // ★ 지난 일정은 별도 패널로 (사라지지 않음)
+                // ── 배치 분류: 모든 일정은 반드시 어느 한 칸에 표시됨 (절대 사라지지 않음) ──
+                const expired  = a.dueDate < today;                 // 종료일이 지난 일정
+                const inToday  = !expired && a.startDate <= today;  // 진행 중 (오늘 포함)
+                const inTW     = !expired && !inToday && overlaps(a.startDate, a.dueDate, tw.monStr, tw.sunStr);
+                const isFuture = !expired && a.startDate > tw.sunStr;
 
-                const inToday   = a.startDate <= today;
-                const inTW      = !inToday && overlaps(a.startDate, a.dueDate, tw.monStr, tw.sunStr);
-                const isFuture  = a.startDate > tw.sunStr;   // ★ 이번주 이후 등록된 모든 일정 (다음주 한정 아님)
-
-                // 요약 (중요/이벤트/회의 또는 마일스톤, 진행중)
+                // 요약 (중요/이벤트/회의 또는 마일스톤, 진행중) — 지난 일정도 요약에서 사라지지 않도록 오늘칸에 유지
                 if ((['중요','이벤트','회의'].includes(a.category) || a.milestone) && a.status === 'active') {
                     const placeDisp = a.meetingPlace === '추후지정'
                         ? ` <span class="badge-tbd">⏳추후지정</span>`
@@ -563,13 +548,15 @@
                     </div>`;
                     if (inToday) sTD += html;
                     else if (inTW) sTW += html;
-                    if (isFuture) sNW += html;   // ★ 이번주 이후 등록된 모든 일정 (향후 주요 Activity)
+                    if (isFuture) sNW += html;
                 }
 
-                // 게시판 패널 (오늘 / 이번주 / 다음 주 이후 전체)
-                if (inToday) createItem('TD', mIdx, a);
-                else if (inTW) createItem('TW', mIdx, a);
-                if (isFuture) createItem('NW', mIdx, a);   // ★ 이번주 이후 시작하는 모든 일정 (향후 주요 Activity와 동일 기준)
+                // 게시판 패널 (지난 / 오늘 / 이번주 / 향후) — 모든 일정이 항상 한 칸에 표시
+                if (expired)       createItem('PS', mIdx, a);   // ★ 지난 일정: 사라지지 않고 지난 칸에 투명 표시
+                else if (inToday)  createItem('TD', mIdx, a);
+                else if (inTW)     createItem('TW', mIdx, a);
+                else if (isFuture) createItem('NW', mIdx, a);
+                else               createItem('NW', mIdx, a);   // 어떤 분류에도 안 걸리는 예외 케이스 방어 (증발 방지)
             });
 
         document.getElementById('sum-today').innerHTML = sTD || '<span style="color:#aaa">오늘 주요 일정 없음</span>';
@@ -581,39 +568,7 @@
             if (!el.children.length) el.innerHTML = '<div class="empty-hint">—</div>';
         });
 
-        renderPastList(pastItems);
         renderCalendar();
-    }
-
-    // ── 지난 일정 패널: 최신순(가장 최근에 지난 것부터) 정렬하여 계속 확인 가능하게 표시 ──
-    function renderPastList(items) {
-        const wrap = document.getElementById('past-list');
-        document.getElementById('past-count').textContent = items.length;
-        if (!items.length) { wrap.innerHTML = '<div class="empty-hint">지난 일정이 없습니다</div>'; return; }
-
-        wrap.innerHTML = '';
-        items
-            .sort((a, b) => sortKey(b).localeCompare(sortKey(a)))   // 최근 지난 순
-            .forEach(a => {
-                const mIdx = managers.indexOf(a.manager);
-                const col  = mColors[mIdx] || '#888';
-                const dateDisp = (a.category === '회의') ? a.startDate : `${a.startDate} ~ ${a.dueDate}`;
-                const msStar = a.milestone ? `<span class="ms-star">★</span> ` : '';
-                const el = document.createElement('div');
-                el.className = 'past-item';
-                el.innerHTML = `
-                    <span class="p-mgr" style="background:${col}">${a.manager}</span>
-                    <span class="p-date">${dateDisp}</span>
-                    <span class="tag tag-${a.category}">${a.category}</span>
-                    <span class="p-content" title="${escapeHtml(a.content)}">${msStar}${a.content}</span>
-                    ${a.memo ? `<span class="item-memo" title="${escapeHtml(a.memo)}">📎</span>` : ''}
-                    <div class="item-btns">
-                        <button class="btn-tiny" style="background:#004b91" onclick="openEdit('${a.id}')">수정</button>
-                        <button class="btn-tiny" style="background:#52c41a" onclick="toggleStat('${a.id}','${a.status}')">${a.status === 'done' ? '재개' : '완료'}</button>
-                        <button class="btn-tiny" style="background:#ff4d4f" onclick="delAct('${a.id}')">삭제</button>
-                    </div>`;
-                wrap.appendChild(el);
-            });
     }
 
     function createItem(prefix, mIdx, a) {
@@ -630,8 +585,10 @@
         const meetInfo = (a.category === '회의')
             ? `<span class="item-meeting-info">${a.meetingTime ? `⏰${a.meetingTime} ` : ''}${placeDisp}</span>`
             : '';
+        // 지난 일정(PS 패널)은 투명 처리
+        const pastCls = prefix === 'PS' ? 'past' : '';
         const item = document.createElement('div');
-        item.className = `activity-item ${a.status === 'done' ? 'done' : ''}`;
+        item.className = `activity-item ${a.status === 'done' ? 'done' : ''} ${pastCls}`;
         item.innerHTML = `
             <div class="item-left-meta">
                 <span class="item-dates">${dateDisp}</span>
