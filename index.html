@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Utility Team Master v12.8</title>
+    <title>Utility Team Master v12.9</title>
     <style>
         :root {
             --posco-blue: #004b91;
@@ -152,7 +152,7 @@
 <body>
 
 <header>
-    <div style="font-weight: 900;">POSCO E&C <span style="font-weight: 300;">Utility Team Master v12.8</span></div>
+    <div style="font-weight: 900;">POSCO E&C <span style="font-weight: 300;">Utility Team Master v12.9</span></div>
     <div style="display:flex; align-items:center; gap:12px;">
         <span id="conn-dot" style="font-size:0.72rem; padding:3px 10px; border-radius:12px; background:rgba(255,255,255,0.15);">⏳ 연결 확인 중</span>
         <button class="bell-btn" id="bell-btn" onclick="enableNotify()">🔔 브라우저 알림 켜기</button>
@@ -220,6 +220,15 @@
 </div>
 
 <div class="container" id="person-rows"></div>
+
+<!-- ── 데이터 정합성 진단 바: DB 건수와 화면 건수를 항상 대조 ── -->
+<div id="diag-bar" style="max-width:1600px; margin:14px auto 4px; padding:6px 18px; font-size:0.72rem; color:#888; box-sizing:border-box;"></div>
+
+<!-- ── 점검 필요 항목: 어느 칸에도 분류되지 않는 일정 (증발 방지) ── -->
+<div id="orphan-box" style="display:none; max-width:1600px; margin:0 auto 14px; padding:12px 18px; background:#fff1f0; border:1px solid #ffa39e; border-radius:10px; box-sizing:border-box;">
+    <div style="font-weight:800; color:#cf1322; font-size:0.85rem; margin-bottom:8px;">⚠️ 점검 필요 일정 — 담당자 명단 불일치 또는 날짜 정보 누락으로 게시판에 분류되지 못한 항목입니다. 수정 버튼으로 정보를 보완하세요.</div>
+    <div id="orphan-list" style="display:flex; flex-direction:column; gap:4px;"></div>
+</div>
 
 <!-- ── 지난 일정: 하단 토글 패널 (삭제되지 않고 항상 확인 가능) ── -->
 <details id="past-details">
@@ -424,7 +433,19 @@
         renderPersonRows();
         onValue(actRef, snap => {
             const data = snap.val();
-            activities = data ? Object.keys(data).map(k => ({ id: k, ...data[k] })) : [];
+            const incoming = data ? Object.keys(data).map(k => ({ id: k, ...data[k] })) : [];
+
+            // ── 최후 방어선: 건수 급감 감지 + 로컬 백업 ──
+            const prevCount = Number(localStorage.getItem('utm_last_count') || 0);
+            if (prevCount > 0 && incoming.length < prevCount) {
+                console.warn(`[UTM] 데이터 건수 감소 감지: ${prevCount} → ${incoming.length}`);
+                const backup = localStorage.getItem('utm_backup');
+                if (backup) console.warn('[UTM] 직전 백업 사용 가능 (localStorage: utm_backup)');
+            }
+            localStorage.setItem('utm_last_count', String(incoming.length));
+            try { localStorage.setItem('utm_backup', JSON.stringify(incoming)); } catch (e) {}
+
+            activities = incoming;
             refreshUI();
             checkMeetings();   // 데이터 수신 직후에도 한 번 점검
         });
@@ -532,15 +553,22 @@
         const tw = getWeekRange(0);
         let sTD = '', sTW = '', sNW = '';
         const pastItems = [];   // 지난 일정 모음 (하단 토글 패널에 표시 — 삭제되지 않고 항상 확인 가능)
+        const orphanItems = []; // ★ 분류 불가(데이터 불완전) 항목 — 절대 버리지 않고 화면에 노출
 
         activities
             .slice()
             .sort((a, b) => sortKey(a).localeCompare(sortKey(b)))
             .forEach(a => {
-                if (a.deleted) return;   // 사용자가 직접 삭제한 항목만 제외
-                if (!a.manager || !a.startDate || !a.dueDate) return;
+                // ★ 소프트 삭제된 항목만 화면에서 제외 (DB에는 보존)
+                if (a.deleted) return;
+
+                // ★ 근본 수정: 데이터가 불완전해도 절대 버리지 않고 '점검 필요' 목록으로 표시
+                //   (이전에는 여기서 조용히 return 되어 화면에서 사라졌음)
                 const mIdx = managers.indexOf(a.manager);
-                if (mIdx < 0) return;
+                if (!a.manager || !a.startDate || !a.dueDate || mIdx < 0) {
+                    orphanItems.push(a);
+                    return;
+                }
 
                 // ── 배치 분류 ──
                 const expired  = a.dueDate < today;                 // 종료일이 지난 일정
@@ -585,8 +613,44 @@
             if (!el.children.length) el.innerHTML = '<div class="empty-hint">—</div>';
         });
 
+        // ── 데이터 정합성 진단: DB 총건수와 화면 표시건수를 비교해 유실 즉시 감지 ──
+        const totalDb    = activities.length;
+        const softDeleted = activities.filter(a => a.deleted).length;
+        const shownBoard = document.querySelectorAll('.activity-item').length;
+        const diag = document.getElementById('diag-bar');
+        if (diag) {
+            diag.innerHTML = `📊 DB 총 <b>${totalDb}</b>건 · 삭제됨 ${softDeleted} · 지난 ${pastItems.length} · 진행/예정 ${shownBoard}` +
+                (orphanItems.length ? ` · <span style="color:#cf1322;font-weight:800;">⚠️ 점검필요 ${orphanItems.length}</span>` : '');
+        }
+
         renderPastList(pastItems);
+        renderOrphanList(orphanItems);
         renderCalendar();
+    }
+
+    // ── 분류 불가 항목: 담당자 미일치·날짜 누락 등으로 어느 칸에도 못 들어가는 일정을 노출 (증발 방지) ──
+    function renderOrphanList(items) {
+        const box = document.getElementById('orphan-box');
+        const wrap = document.getElementById('orphan-list');
+        if (!box || !wrap) return;
+        if (!items.length) { box.style.display = 'none'; return; }
+        box.style.display = 'block';
+        wrap.innerHTML = '';
+        items.forEach(a => {
+            const el = document.createElement('div');
+            el.className = 'past-item';
+            const reason = !a.manager ? '담당자 없음'
+                : (managers.indexOf(a.manager) < 0 ? `담당자 명단 불일치 (${a.manager})` : '날짜 정보 누락');
+            el.innerHTML = `
+                <span class="p-date">${a.startDate || '?'} ~ ${a.dueDate || '?'}</span>
+                <span class="tag tag-중요">${reason}</span>
+                <span class="p-content" title="${escapeHtml(a.content || '')}">${a.content || '(내용 없음)'}</span>
+                <div class="item-btns">
+                    <button class="btn-tiny" style="background:#004b91" onclick="openEdit('${a.id}')">수정</button>
+                    <button class="btn-tiny" style="background:#ff4d4f" onclick="delAct('${a.id}')">삭제</button>
+                </div>`;
+            wrap.appendChild(el);
+        });
     }
 
     // ── 지난 일정 토글 패널 렌더링 (최근 지난 순) ──
@@ -692,6 +756,15 @@
 
     window.saveEdit = () => {
         const id  = document.getElementById('edit-id').value;
+
+        // ★ 안전장치: 수정 대상이 실제 DB에 존재하는지 확인 (경합/오작동으로 엉뚱한 노드 생성 방지)
+        const target = activities.find(x => x.id === id);
+        if (!id || !target) {
+            alert("수정 대상을 찾을 수 없습니다.\n화면을 새로고침한 후 다시 시도하세요.");
+            closeEdit();
+            return;
+        }
+
         const cat = document.getElementById('edit-category').value;
         const isMeeting   = cat === '회의';
         const isMilestone = document.getElementById('edit-milestone').checked;
