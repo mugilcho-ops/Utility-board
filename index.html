@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Utility Team Master v12.9</title>
+    <title>Utility Team Master v13.0</title>
     <style>
         :root {
             --posco-blue: #004b91;
@@ -152,8 +152,9 @@
 <body>
 
 <header>
-    <div style="font-weight: 900;">POSCO E&C <span style="font-weight: 300;">Utility Team Master v12.9</span></div>
+    <div style="font-weight: 900;">POSCO E&C <span style="font-weight: 300;">Utility Team Master v13.0</span></div>
     <div style="display:flex; align-items:center; gap:12px;">
+        <span id="user-badge" onclick="changeUser()" style="font-size:0.72rem; padding:3px 10px; border-radius:12px; background:rgba(255,255,255,0.15); cursor:pointer;" title="클릭하여 사용자 변경">👤 사용자 미설정</span>
         <span id="conn-dot" style="font-size:0.72rem; padding:3px 10px; border-radius:12px; background:rgba(255,255,255,0.15);">⏳ 연결 확인 중</span>
         <button class="bell-btn" id="bell-btn" onclick="enableNotify()">🔔 브라우저 알림 켜기</button>
         <div id="clock" style="font-size: 0.8rem;"></div>
@@ -333,6 +334,26 @@
     const cats     = ["중요", "일상", "회의", "이벤트", "휴가"];
     const meetingPlaces = ["추후지정","2대","2소1","2소2","2소3","2소4","2소5","2소6","2휴게","3층","4층","5층"];
 
+    // ── 삭제 권한 관리 ──
+    const ADMIN = "조래혁";   // 관리자: 모든 일정 삭제 가능
+    // 현재 사용자(브라우저)를 식별해 저장 — 등록자 본인/관리자만 삭제 가능하도록 사용
+    function getCurrentUser() {
+        let u = localStorage.getItem('utm_current_user');
+        if (!u || managers.indexOf(u) < 0) {
+            u = promptUserSelect();
+        }
+        return u;
+    }
+    function promptUserSelect() {
+        const list = managers.map((m, i) => `${i}: ${m}`).join('\n');
+        let idx = prompt(`본인을 선택하세요 (번호 입력)\n${list}`, '');
+        idx = parseInt(idx, 10);
+        const u = (idx >= 0 && idx < managers.length) ? managers[idx] : managers[0];
+        localStorage.setItem('utm_current_user', u);
+        return u;
+    }
+    let currentUser = localStorage.getItem('utm_current_user') || '';
+
     function buildTimeOptions() {
         const opts = ['<option value="">선택</option>'];
         for (let h = 8; h <= 18; h++) {
@@ -461,6 +482,12 @@
 
         // 알림 버튼 상태 초기화
         updateBellBtn();
+
+        // 현재 사용자 초기화 (삭제 권한 판정용)
+        if (!currentUser || managers.indexOf(currentUser) < 0) {
+            currentUser = getCurrentUser();
+        }
+        updateUserBadge();
     };
 
     // ── 담당자별 행: 지난 / 오늘 / 이번주 / 향후 4패널 ──
@@ -524,7 +551,8 @@
             status:    'active',
             milestone: isMilestone,
             showOnCal: true,   // ★ 기본 표시: 등록 즉시 캘린더에서 확인 가능 (사라짐 방지)
-            createdAt: new Date().toISOString()
+            createdAt: new Date().toISOString(),
+            createdBy: currentUser || mgr   // ★ 등록자 기록 (삭제 권한 판정용)
         };
         if (isMeeting) {
             payload.meetingTime  = document.getElementById('g-mtime').value  || '';
@@ -799,10 +827,33 @@
     };
 
     window.toggleStat = (id, s) => trackWrite(update(ref(db, `activities/${id}`), { status: s === 'done' ? 'active' : 'done' }), '완료 상태 변경');
-    // ── 소프트 삭제: DB에서 지우지 않고 deleted 플래그만 기록 (Firebase Console에서 언제든 복구 가능) ──
+    // ── 소프트 삭제 (권한 제한): 등록자 본인 또는 관리자(조래혁)만 가능 ──
     window.delAct = (id) => {
-        if (confirm("이 일정을 삭제할까요?\n(삭제된 일정은 DB에 보존되며 관리자가 복구할 수 있습니다)")) {
-            trackWrite(update(ref(db, `activities/${id}`), { deleted: true, deletedAt: new Date().toISOString() }), '일정 삭제');
+        const a = activities.find(x => x.id === id);
+        if (!a) { alert("대상을 찾을 수 없습니다."); return; }
+
+        // 현재 사용자 확인 (미설정 시 선택 요청)
+        if (!currentUser || managers.indexOf(currentUser) < 0) {
+            currentUser = promptUserSelect();
+            updateUserBadge();
+        }
+
+        const owner = a.createdBy || a.manager;   // 등록자(구 데이터는 담당자로 대체)
+        const isAdmin = currentUser === ADMIN;
+        const isOwner = currentUser === owner;
+
+        if (!isAdmin && !isOwner) {
+            alert(`⛔ 삭제 권한이 없습니다.\n\n이 일정은 '${owner}'님이 등록했습니다.\n삭제는 등록자 본인 또는 관리자(${ADMIN})만 가능합니다.\n\n현재 사용자: ${currentUser}`);
+            return;
+        }
+
+        const who = isAdmin ? `관리자(${ADMIN})` : '등록자 본인';
+        if (confirm(`이 일정을 삭제할까요?  [${who} 권한]\n\n"${a.content}"\n\n(DB에는 보존되며 관리자가 복구할 수 있습니다)`)) {
+            trackWrite(update(ref(db, `activities/${id}`), {
+                deleted: true,
+                deletedAt: new Date().toISOString(),
+                deletedBy: currentUser
+            }), '일정 삭제');
         }
     };
     window.toggleCal = (id, chk) => trackWrite(update(ref(db, `activities/${id}`), { showOnCal: chk }), '캘린더 표시 변경');
@@ -938,6 +989,13 @@
         if (!('Notification' in window)) { alert('이 브라우저는 알림을 지원하지 않습니다.'); return; }
         Notification.requestPermission().then(updateBellBtn);
     };
+    function updateUserBadge() {
+        const el = document.getElementById('user-badge');
+        if (!el) return;
+        el.textContent = currentUser ? `👤 ${currentUser}${currentUser === ADMIN ? ' (관리자)' : ''}` : '👤 사용자 미설정';
+    }
+    window.changeUser = () => { currentUser = promptUserSelect(); updateUserBadge(); };
+
     function updateBellBtn() {
         const btn = document.getElementById('bell-btn');
         if ('Notification' in window && Notification.permission === 'granted') {
