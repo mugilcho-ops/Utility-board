@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Utility Team Master v13.0</title>
+    <title>Team Master v13.2</title>
     <style>
         :root {
             --posco-blue: #004b91;
@@ -28,6 +28,13 @@
         .cal-cell b { font-size: 0.75rem; display: inline-block; }
         .cal-cell.other-month { background: #fafafa; }
         .cal-cell.other-month b { color: #bbb; }
+        /* 공휴일·주말(비근무일) 표시 */
+        .cal-cell.holiday-cell { background: #fff1f0; }
+        .cal-cell.holiday-cell b { color: #cf1322; }
+        .cal-cell.sun-cell b { color: #cf1322; }
+        .cal-cell.sat-cell b { color: #1a5bbf; }
+        .holiday-label { font-size: 0.55rem; color: #cf1322; font-weight: 700; display: block; line-height: 1.15; margin-top: 1px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .wk-other .holiday-label { display: none; }
 
         /* 주 단위 크기: 이번주 100% / 다음주 60% / 나머지 30% */
         .wk-cur   .cal-cell { min-height: 110px; }
@@ -152,7 +159,7 @@
 <body>
 
 <header>
-    <div style="font-weight: 900;">POSCO E&C <span style="font-weight: 300;">Utility Team Master v13.0</span></div>
+    <div style="font-weight: 900;">POSCO E&C <span style="font-weight: 300;">Team Master v13.2</span></div>
     <div style="display:flex; align-items:center; gap:12px;">
         <span id="user-badge" onclick="changeUser()" style="font-size:0.72rem; padding:3px 10px; border-radius:12px; background:rgba(255,255,255,0.15); cursor:pointer;" title="클릭하여 사용자 변경">👤 사용자 미설정</span>
         <span id="conn-dot" style="font-size:0.72rem; padding:3px 10px; border-radius:12px; background:rgba(255,255,255,0.15);">⏳ 연결 확인 중</span>
@@ -169,6 +176,12 @@
         <button onclick="changeMonth(1)" style="cursor:pointer; padding:4px 10px; border:1px solid #ddd; border-radius:4px; background:#fff;">▶</button>
     </div>
     <div id="cal-wrap"></div>
+    <div style="display:flex; gap:14px; margin-top:8px; font-size:0.68rem; color:#888; align-items:center;">
+        <span><span style="display:inline-block; width:10px; height:10px; background:#fff1f0; border:1px solid #ffa39e; border-radius:2px; vertical-align:middle;"></span> 공휴일·지정휴일 (비근무일)</span>
+        <span style="color:#cf1322;">■ 일요일/공휴일</span>
+        <span style="color:#1a5bbf;">■ 토요일</span>
+        <span style="margin-left:auto; color:#bbb;">※ 공휴일은 코드 상단 HOLIDAYS 표에서 매년 갱신</span>
+    </div>
 </div>
 
 <!-- ── 일정 등록 바 (전 담당자 공용) ── -->
@@ -333,6 +346,33 @@
     const mColors  = ["#555555", "#e74c3c", "#f39c12", "#27ae60", "#2980b9", "#8e44ad"];
     const cats     = ["중요", "일상", "회의", "이벤트", "휴가"];
     const meetingPlaces = ["추후지정","2대","2소1","2소2","2소3","2소4","2소5","2소6","2휴게","3층","4층","5층"];
+
+    // ── 한국 공휴일 + POSCO/POSCO E&C 지정휴일 (매년 초 갱신) ──
+    //   working day에서 제외 표시되며, 값은 달력에 표시할 휴일명입니다.
+    //   매년 이 표만 갱신하면 됩니다. (음력 명절·대체공휴일 날짜는 해마다 바뀜)
+    const HOLIDAYS = {
+        // ===== 2026년 법정 공휴일 =====
+        "2026-01-01": "신정",
+        "2026-02-16": "설날연휴", "2026-02-17": "설날", "2026-02-18": "설날연휴",
+        "2026-03-01": "삼일절", "2026-03-02": "삼일절 대체",
+        "2026-05-05": "어린이날", "2026-05-24": "부처님오신날", "2026-05-25": "석탄일 대체",
+        "2026-06-03": "지방선거일", "2026-06-06": "현충일",
+        "2026-07-17": "제헌절",
+        "2026-08-15": "광복절", "2026-08-17": "광복절 대체",
+        "2026-09-24": "추석연휴", "2026-09-25": "추석", "2026-09-26": "추석연휴",
+        "2026-10-03": "개천절", "2026-10-05": "개천절 대체", "2026-10-09": "한글날",
+        "2026-12-25": "성탄절",
+        // ===== POSCO / POSCO E&C 지정휴일 (회사 취업규칙 기준 — 확인 후 조정) =====
+        "2026-06-27": "노사상생의 날",
+        // "2026-04-01": "창립기념일",   // POSCO 창립일(4/1). 회사 방침에 따라 활성화
+    };
+    function holidayName(ds) { return HOLIDAYS[ds] || null; }
+    // 비근무일 = 토·일 또는 공휴일
+    function isNonWorkingDay(ds) {
+        if (HOLIDAYS[ds]) return true;
+        const dow = new Date(ds + 'T00:00:00').getDay();
+        return dow === 0 || dow === 6;
+    }
 
     // ── 삭제 권한 관리 ──
     const ADMIN = "조래혁";   // 관리자: 모든 일정 삭제 가능
@@ -541,6 +581,13 @@
         if (!t || !s)          { alert("내용과 날짜를 입력하세요!"); return; }
         if (!singleDate && !e) { alert("종료일을 입력하세요!"); return; }
         if (e < s)             { alert("종료일이 시작일보다 빠릅니다!"); return; }
+
+        // 회의를 비근무일(주말·공휴일)에 등록하려 하면 확인
+        if (isMeeting && isNonWorkingDay(s)) {
+            const hn = holidayName(s);
+            const label = hn ? `${s} (${hn})` : `${s} (주말)`;
+            if (!confirm(`⚠️ ${label}은 비근무일입니다.\n회의를 이 날에 등록하시겠습니까?`)) return;
+        }
 
         const payload = {
             manager:   mgr,
@@ -908,6 +955,13 @@
             let cells = '';
             wk.forEach(cell => {
                 const isToday = cell.ds === today;
+                const dow = new Date(cell.ds + 'T00:00:00').getDay();
+                const hName = holidayName(cell.ds);
+                // 비근무일 클래스 결정 (공휴일 우선 → 일요일 → 토요일)
+                let dayCls = '';
+                if (hName)          dayCls = 'holiday-cell';
+                else if (dow === 0) dayCls = 'sun-cell';
+                else if (dow === 6) dayCls = 'sat-cell';
                 let evs = '';
                 activities
                     .filter(a => !a.deleted && a.showOnCal && a.startDate && a.dueDate && cell.ds >= a.startDate && cell.ds <= a.dueDate)
@@ -923,7 +977,8 @@
                         const msStar  = a.milestone ? '<span class="ms-star">★</span> ' : '';
                         evs += `<div class="cal-event ${pastCls} ${msCls}" style="background:${col}" title="[${a.manager}] ${a.content}${placeLabel}${a.memo ? ' 📎' + a.memo : ''}">${msStar}${timeLabel}${a.content}</div>`;
                     });
-                cells += `<div class="cal-cell ${isToday ? 'today-cell' : ''} ${cell.inMonth ? '' : 'other-month'}"><b>${cell.d}</b>${evs}</div>`;
+                const holLabel = hName ? `<span class="holiday-label" title="${hName}">${hName}</span>` : '';
+                cells += `<div class="cal-cell ${isToday ? 'today-cell' : ''} ${dayCls} ${cell.inMonth ? '' : 'other-month'}"><b>${cell.d}</b>${holLabel}${evs}</div>`;
             });
             html += `<div class="cal-week ${wkClass}">${cells}</div>`;
         });
