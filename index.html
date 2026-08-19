@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Team Master v13.2</title>
+    <title>Team Master v13.3</title>
     <style>
         :root {
             --posco-blue: #004b91;
@@ -130,7 +130,7 @@
         .tag-중요 { background: #fff1f0; color: #cf1322; }
         .tag-회의 { background: #e6f7ff; color: #096dd9; }
         .tag-이벤트 { background: #fff7e6; color: #d46b08; }
-        .tag-일상 { background: #f6ffed; color: #389e0d; }
+        .tag-Plan { background: #f6ffed; color: #389e0d; }
         .tag-휴가 { background: #f9f0ff; color: #531dab; }
 
         /* ─────────── 수정 모달 ─────────── */
@@ -159,7 +159,7 @@
 <body>
 
 <header>
-    <div style="font-weight: 900;">POSCO E&C <span style="font-weight: 300;">Team Master v13.2</span></div>
+    <div style="font-weight: 900;">POSCO E&C <span style="font-weight: 300;">Team Master v13.3</span></div>
     <div style="display:flex; align-items:center; gap:12px;">
         <span id="user-badge" onclick="changeUser()" style="font-size:0.72rem; padding:3px 10px; border-radius:12px; background:rgba(255,255,255,0.15); cursor:pointer;" title="클릭하여 사용자 변경">👤 사용자 미설정</span>
         <span id="conn-dot" style="font-size:0.72rem; padding:3px 10px; border-radius:12px; background:rgba(255,255,255,0.15);">⏳ 연결 확인 중</span>
@@ -216,11 +216,11 @@
         <div id="sum-today"></div>
     </div>
     <div class="summary-box this">
-        <div class="summary-title">🚩 This Week 주요 Activity</div>
+        <div class="summary-title">🚩 2 Weeks Activity (금주 + 차주 주요 일정)</div>
         <div id="sum-this"></div>
     </div>
     <div class="summary-box next">
-        <div class="summary-title">🔭 향후 주요 Activity (다음 주부터 예정된 모든 일정)</div>
+        <div class="summary-title">📋 Work Plan & Milestone</div>
         <div id="sum-next" style="color:#0050b3;"></div>
     </div>
 </div>
@@ -344,7 +344,7 @@
 
     const managers = ["Utility 공통", "조갑수", "전해석", "박일경", "조래혁", "김형진"];
     const mColors  = ["#555555", "#e74c3c", "#f39c12", "#27ae60", "#2980b9", "#8e44ad"];
-    const cats     = ["중요", "일상", "회의", "이벤트", "휴가"];
+    const cats     = ["중요", "Plan", "회의", "이벤트", "휴가"];
     const meetingPlaces = ["추후지정","2대","2소1","2소2","2소3","2소4","2소5","2소6","2휴게","3층","4층","5층"];
 
     // ── 한국 공휴일 + POSCO/POSCO E&C 지정휴일 (매년 초 갱신) ──
@@ -621,24 +621,40 @@
         updateDateMode();
     };
 
+    // ── 요약 행 생성 (past=true면 회색 저중요 표시) ──
+    function summaryRow(a, past) {
+        const placeDisp = a.meetingPlace === '추후지정'
+            ? ` <span class="badge-tbd">⏳추후지정</span>`
+            : (a.meetingPlace ? ` 📍${a.meetingPlace}` : '');
+        const msStar = a.milestone ? `<span class="ms-star">★</span> ` : '';
+        const grayStyle = past ? ' style="opacity:0.55; filter:grayscale(0.8);"' : '';
+        const textGray = past ? ' style="color:#999;"' : '';
+        return `<div class="summary-item"${grayStyle}>
+            <span${textGray}>
+                ${msStar}<span class="tag tag-${a.category}">${a.category}</span>
+                <b>[${a.manager}]</b> ${a.content}
+                ${a.meetingTime ? ` ⏰${a.meetingTime}` : ''}${placeDisp}${memoIcon(a)}
+            </span>
+            <input type="checkbox" ${a.showOnCal ? 'checked' : ''} onchange="toggleCal('${a.id}',this.checked)">
+        </div>`;
+    }
+
     // ── 화면 갱신 ──
     function refreshUI() {
         document.querySelectorAll('[id^="list-"]').forEach(el => el.innerHTML = '');
         const today = todayStr();
         const tw = getWeekRange(0);
-        let sTD = '', sTW = '', sNW = '';
-        const pastItems = [];   // 지난 일정 모음 (하단 토글 패널에 표시 — 삭제되지 않고 항상 확인 가능)
-        const orphanItems = []; // ★ 분류 불가(데이터 불완전) 항목 — 절대 버리지 않고 화면에 노출
+        const nw = getWeekRange(1);   // 차주
+        let sTD = '', sTW_live = '', sTW_past = '', sNW = '';
+        const pastItems = [];
+        const orphanItems = [];
 
         activities
             .slice()
             .sort((a, b) => sortKey(a).localeCompare(sortKey(b)))
             .forEach(a => {
-                // ★ 소프트 삭제된 항목만 화면에서 제외 (DB에는 보존)
                 if (a.deleted) return;
 
-                // ★ 근본 수정: 데이터가 불완전해도 절대 버리지 않고 '점검 필요' 목록으로 표시
-                //   (이전에는 여기서 조용히 return 되어 화면에서 사라졌음)
                 const mIdx = managers.indexOf(a.manager);
                 if (!a.manager || !a.startDate || !a.dueDate || mIdx < 0) {
                     orphanItems.push(a);
@@ -646,42 +662,51 @@
                 }
 
                 // ── 배치 분류 ──
-                const expired  = a.dueDate < today;                 // 종료일이 지난 일정
-                const inToday  = !expired && a.startDate <= today;  // 진행 중 (오늘 포함)
+                const expired  = a.dueDate < today;
+                const inToday  = !expired && a.startDate <= today;
                 const inTW     = !expired && !inToday && overlaps(a.startDate, a.dueDate, tw.monStr, tw.sunStr);
                 const isFuture = !expired && a.startDate > tw.sunStr;
 
-                // 지난 일정은 하단 토글 패널로 모음 (달력에는 계속 표시됨)
-                if (expired) { pastItems.push(a); return; }
+                // 2 Weeks 범위: 금주 월요일 ~ 차주 일요일
+                const in2wk = overlaps(a.startDate, a.dueDate, tw.monStr, nw.sunStr);
+                const isMajor = ['중요','이벤트','회의'].includes(a.category) || a.milestone;
 
-                // 요약 (중요/이벤트/회의 또는 마일스톤, 진행중)
-                if ((['중요','이벤트','회의'].includes(a.category) || a.milestone) && a.status === 'active') {
-                    const placeDisp = a.meetingPlace === '추후지정'
-                        ? ` <span class="badge-tbd">⏳추후지정</span>`
-                        : (a.meetingPlace ? ` 📍${a.meetingPlace}` : '');
-                    const msStar = a.milestone ? `<span class="ms-star">★</span> ` : '';
-                    const html = `<div class="summary-item">
-                        <span>
-                            ${msStar}<span class="tag tag-${a.category}">${a.category}</span>
-                            <b>[${a.manager}]</b> ${a.content}
-                            ${a.meetingTime ? ` ⏰${a.meetingTime}` : ''}${placeDisp}${memoIcon(a)}
-                        </span>
-                        <input type="checkbox" ${a.showOnCal ? 'checked' : ''} onchange="toggleCal('${a.id}',this.checked)">
-                    </div>`;
-                    if (inToday) sTD += html;
-                    else if (inTW) sTW += html;
-                    if (isFuture) sNW += html;
+                // 지난 일정은 하단 토글 패널로 모음 (달력에는 계속 표시됨)
+                if (expired) {
+                    pastItems.push(a);
+                    // 지난 주요 일정이 2주 범위에 걸쳐 있으면 2 Weeks 요약 하단(회색)에 유지
+                    if (isMajor && a.status === 'active' && a.dueDate >= tw.monStr) {
+                        sTW_past += summaryRow(a, true);
+                    }
+                    return;
                 }
 
-                // 게시판 패널 (오늘 / 이번주 / 향후) — 진행중·예정 일정은 항상 한 칸에 표시
+                // ── Today 요약 (현행 유지: 중요/이벤트/회의/마일스톤) ──
+                if (isMajor && a.status === 'active') {
+                    const row = summaryRow(a, false);
+                    if (inToday) sTD += row;
+                    // 2 Weeks 요약: 금주+차주 주요 일정 (진행/예정)
+                    if (in2wk && !inToday) sTW_live += row;
+                    else if (in2wk && inToday) sTW_live += row;
+                }
+
+                // ── Work Plan & Milestone 요약: Plan 카테고리 + 마일스톤 ──
+                if ((a.category === 'Plan' || a.milestone) && a.status === 'active') {
+                    sNW += summaryRow(a, false);
+                }
+
+                // 게시판 패널 (오늘 / 이번주 / 향후)
                 if (inToday)       createItem('TD', mIdx, a);
                 else if (inTW)     createItem('TW', mIdx, a);
-                else               createItem('NW', mIdx, a);   // 향후 및 예외 케이스 방어 (증발 방지)
+                else               createItem('NW', mIdx, a);
             });
+
+        // 2 Weeks: 진행/예정 먼저, 지난(회색) 나중
+        const sTW = sTW_live + (sTW_past ? `<div style="margin-top:6px; border-top:1px dashed #ccc; padding-top:4px; font-size:0.6rem; color:#bbb;">지난 일정</div>${sTW_past}` : '');
 
         document.getElementById('sum-today').innerHTML = sTD || '<span style="color:#aaa">오늘 주요 일정 없음</span>';
         document.getElementById('sum-this').innerHTML  = sTW || '<span style="color:#aaa">주요 일정 없음</span>';
-        document.getElementById('sum-next').innerHTML  = sNW || '<span style="color:#aaa">주요 일정 없음</span>';
+        document.getElementById('sum-next').innerHTML  = sNW || '<span style="color:#aaa">등록된 Plan·마일스톤 없음</span>';
 
         // 빈 패널 표시
         document.querySelectorAll('[id^="list-"]').forEach(el => {
@@ -962,9 +987,19 @@
                 if (hName)          dayCls = 'holiday-cell';
                 else if (dow === 0) dayCls = 'sun-cell';
                 else if (dow === 6) dayCls = 'sat-cell';
+                const nonWork = !!hName || dow === 0 || dow === 6;   // 공휴일·토·일
                 let evs = '';
                 activities
-                    .filter(a => !a.deleted && a.showOnCal && a.startDate && a.dueDate && cell.ds >= a.startDate && cell.ds <= a.dueDate)
+                    .filter(a => {
+                        if (a.deleted || !a.showOnCal || !a.startDate || !a.dueDate) return false;
+                        if (!(cell.ds >= a.startDate && cell.ds <= a.dueDate)) return false;
+                        // 비근무일에는 기간형(여러 날 걸친) 일정은 숨기고, 그날 단독 등록만 표시
+                        if (nonWork) {
+                            const singleDay = a.startDate === a.dueDate;   // 당일 단독 일정
+                            if (!singleDay) return false;
+                        }
+                        return true;
+                    })
                     .sort((a, b) => sortKey(a).localeCompare(sortKey(b)))
                     .forEach(a => {
                         const timeLabel  = (a.category === '회의' && a.meetingTime) ? `${a.meetingTime} ` : '';
