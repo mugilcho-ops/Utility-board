@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Team Master v13.4</title>
+    <title>Team Master v13.5</title>
     <style>
         :root {
             --posco-blue: #004b91;
@@ -61,6 +61,9 @@
         .date-end-wrap.hidden { display: none; }
         .meeting-extra { display: none; background: #eef4ff; border: 1px solid #b8cff5; border-radius: 5px; padding: 5px 8px; gap: 10px; align-items: center; flex-wrap: wrap; font-size: 0.75rem; }
         .meeting-extra.visible { display: flex; }
+        .recur-extra { display: none; background: #f6f0ff; border: 1px solid #d3adf7; border-radius: 5px; padding: 5px 8px; gap: 10px; align-items: center; flex-wrap: wrap; font-size: 0.75rem; }
+        .recur-extra.visible { display: flex; }
+        .recur-extra label { color: #531dab; font-weight: 700; gap: 4px; display: flex; align-items: center; }
         .meeting-extra label { color: #003a7a; font-weight: 700; gap: 4px; display: flex; align-items: center; }
         .milestone-check { display: flex; align-items: center; gap: 4px; font-weight: 700; color: #ad2102; background: #fff2e8; border: 1px solid #ffbb96; border-radius: 5px; padding: 4px 8px; }
         .milestone-check input { width: auto; }
@@ -129,6 +132,7 @@
         .tag { font-size: 0.58rem; padding: 1px 4px; border-radius: 3px; font-weight: bold; flex-shrink: 0; display: inline-block; }
         .tag-중요 { background: #fff1f0; color: #cf1322; }
         .tag-회의 { background: #e6f7ff; color: #096dd9; }
+        .tag-정기회의 { background: #f9f0ff; color: #722ed1; }
         .tag-이벤트 { background: #fff7e6; color: #d46b08; }
         .tag-Plan { background: #f6ffed; color: #389e0d; }
         .due-badge { display: inline-block; font-size: 0.6rem; background: #e6f4ff; color: #0958d9; border: 1px solid #91caff; border-radius: 3px; padding: 0 5px; font-weight: 700; }
@@ -160,7 +164,7 @@
 <body>
 
 <header>
-    <div style="font-weight: 900;">POSCO E&C <span style="font-weight: 300;">Team Master v13.4</span></div>
+    <div style="font-weight: 900;">POSCO E&C <span style="font-weight: 300;">Team Master v13.5</span></div>
     <div style="display:flex; align-items:center; gap:12px;">
         <span id="user-badge" onclick="changeUser()" style="font-size:0.72rem; padding:3px 10px; border-radius:12px; background:rgba(255,255,255,0.15); cursor:pointer;" title="클릭하여 사용자 변경">👤 사용자 미설정</span>
         <span id="conn-dot" style="font-size:0.72rem; padding:3px 10px; border-radius:12px; background:rgba(255,255,255,0.15);">⏳ 연결 확인 중</span>
@@ -207,6 +211,26 @@
     <div class="meeting-extra reg-row" id="g-meet">
         <label>🕐 시작시간 <select id="g-mtime"></select></label>
         <label>📍 장소 <select id="g-mplace"></select></label>
+    </div>
+    <!-- 정기회의 전용 설정 -->
+    <div class="recur-extra reg-row" id="g-recur">
+        <label>🔁 반복
+            <select id="g-recur-type">
+                <option value="weekly">매주</option>
+                <option value="biweekly">격주</option>
+            </select>
+        </label>
+        <label>📆 요일
+            <select id="g-recur-day">
+                <option value="1">월</option><option value="2">화</option><option value="3">수</option>
+                <option value="4">목</option><option value="5">금</option>
+                <option value="0">일</option><option value="6">토</option>
+            </select>
+        </label>
+        <label>🕐 시간 <select id="g-recur-time"></select></label>
+        <label>📍 장소 <select id="g-recur-place"></select></label>
+        <label>📅 종료일 <input type="date" id="g-recur-end"></label>
+        <span style="font-size:0.65rem; color:#999;">※ 종료일 미지정 시 6개월간 반복</span>
     </div>
 </div>
 
@@ -303,6 +327,35 @@
                 </div>
             </div>
         </div>
+        <div id="edit-recur-fields" style="display:none;">
+            <div class="modal-section" style="background:#f6f0ff; border-color:#d3adf7;">
+                <div class="modal-section-title" style="color:#531dab;">🔁 정기회의 설정</div>
+                <div class="modal-field">
+                    <label>반복 주기</label>
+                    <select id="edit-recur-type"><option value="weekly">매주</option><option value="biweekly">격주</option></select>
+                </div>
+                <div class="modal-field">
+                    <label>요일</label>
+                    <select id="edit-recur-day">
+                        <option value="1">월</option><option value="2">화</option><option value="3">수</option>
+                        <option value="4">목</option><option value="5">금</option>
+                        <option value="0">일</option><option value="6">토</option>
+                    </select>
+                </div>
+                <div class="modal-field">
+                    <label>🕐 시간</label>
+                    <select id="edit-recur-time"></select>
+                </div>
+                <div class="modal-field">
+                    <label>📍 장소</label>
+                    <select id="edit-recur-place"></select>
+                </div>
+                <div class="modal-field">
+                    <label>📅 반복 종료일 (미지정 시 6개월)</label>
+                    <input type="date" id="edit-recur-end">
+                </div>
+            </div>
+        </div>
         <div style="display:flex; align-items:center; gap:8px; font-size:0.82rem;">
             <input type="checkbox" id="edit-showCal" style="width:auto;">
             <label for="edit-showCal" style="cursor:pointer;">📆 캘린더에 표시</label>
@@ -345,7 +398,7 @@
 
     const managers = ["Utility 공통", "조갑수", "전해석", "박일경", "조래혁", "김형진"];
     const mColors  = ["#555555", "#e74c3c", "#f39c12", "#27ae60", "#2980b9", "#8e44ad"];
-    const cats     = ["중요", "Plan", "회의", "이벤트", "휴가"];
+    const cats     = ["중요", "Plan", "회의", "정기회의", "이벤트", "휴가"];
     const meetingPlaces = ["추후지정","2대","2소1","2소2","2소3","2소4","2소5","2소6","2휴게","3층","4층","5층"];
 
     // ── 한국 공휴일 + POSCO/POSCO E&C 지정휴일 (매년 초 갱신) ──
@@ -461,6 +514,31 @@
     // ── 정렬 키: 날짜 + 회의시간 (시간 순서 정렬) ──
     const sortKey = a => `${a.startDate || '9999'}_${a.meetingTime || '00:00'}`;
 
+    // ── 정기회의: 규칙(a)로부터 [from, to] 범위 내 발생 날짜 문자열 배열 계산 ──
+    function recurOccurrences(a, fromStr, toStr_) {
+        const out = [];
+        if (a.category !== '정기회의' || !a.startDate || a.weekday == null) return out;
+        const stepDays = a.recurrence === 'biweekly' ? 14 : 7;
+        // 기준일(startDate)에서 지정 요일의 첫 발생일 찾기
+        const base = new Date(a.startDate + 'T00:00:00');
+        const wd = Number(a.weekday);
+        let first = new Date(base);
+        const diff = (wd - base.getDay() + 7) % 7;
+        first.setDate(base.getDate() + diff);
+        // 반복 종료일: dueDate 있으면 그날까지, 없으면 startDate + 6개월
+        const endLimit = a.dueDate
+            ? new Date(a.dueDate + 'T00:00:00')
+            : new Date(base.getFullYear(), base.getMonth() + 6, base.getDate());
+        const from = new Date(fromStr + 'T00:00:00');
+        const to   = new Date(toStr_ + 'T00:00:00');
+        for (let d = new Date(first); d <= endLimit; d.setDate(d.getDate() + stepDays)) {
+            if (d >= from && d <= to) out.push(toStr(d));
+        }
+        return out;
+    }
+    const RECUR_LABEL = { weekly: '매주', biweekly: '격주' };
+    const WD_LABEL = ['일','월','화','수','목','금','토'];
+
     // ── 메모 유틸: HTML 이스케이프 + URL 자동 링크화 ──
     const escapeHtml = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
     const linkifyMemo = t => escapeHtml(t).replace(/(https?:\/\/[^\s]+)/g,
@@ -485,12 +563,16 @@
         document.getElementById('g-cat').innerHTML = cats.map(c => `<option value="${c}">${c}</option>`).join('');
         document.getElementById('g-mtime').innerHTML  = TIME_OPTIONS_HTML;
         document.getElementById('g-mplace').innerHTML = buildPlaceOptions();
+        document.getElementById('g-recur-time').innerHTML  = TIME_OPTIONS_HTML;
+        document.getElementById('g-recur-place').innerHTML = buildPlaceOptions();
         document.getElementById('g-s').value = todayStr();
 
         // 모달 옵션 주입
         document.getElementById('edit-category').innerHTML = cats.map(c => `<option value="${c}">${c}</option>`).join('');
         document.getElementById('edit-time').innerHTML  = TIME_OPTIONS_HTML;
         document.getElementById('edit-place').innerHTML = buildPlaceOptions();
+        document.getElementById('edit-recur-time').innerHTML = TIME_OPTIONS_HTML;
+        document.getElementById('edit-recur-place').innerHTML = buildPlaceOptions();
 
         renderPersonRows();
         onValue(actRef, snap => {
@@ -559,14 +641,21 @@
         });
     }
 
-    // ── 등록 바: 회의/마일스톤 선택 시 종료일 숨김(단일 날짜 모드) ──
+    // ── 등록 바: 회의/마일스톤/정기회의 선택 시 UI 전환 ──
     window.updateDateMode = () => {
-        const isMeeting   = document.getElementById('g-cat').value === '회의';
+        const cat = document.getElementById('g-cat').value;
+        const isMeeting   = cat === '회의';
+        const isRecur     = cat === '정기회의';
         const isMilestone = document.getElementById('g-milestone').checked;
         const singleDate  = isMeeting || isMilestone;
         document.getElementById('g-meet').classList.toggle('visible', isMeeting);
-        document.getElementById('g-end-wrap').classList.toggle('hidden', singleDate);
-        document.getElementById('g-start-label').textContent = isMeeting ? '날짜' : (isMilestone ? '목표일' : '시작');
+        document.getElementById('g-recur').classList.toggle('visible', isRecur);
+        // 정기회의는 기준 날짜(반복 시작일)만 사용, 종료일칸 숨김
+        document.getElementById('g-end-wrap').classList.toggle('hidden', singleDate || isRecur);
+        document.getElementById('g-start-label').textContent =
+            isRecur ? '시작기준일' : (isMeeting ? '날짜' : (isMilestone ? '목표일' : '시작'));
+        // 정기회의 선택 시 마일스톤 체크 비활성
+        document.getElementById('g-milestone').disabled = isRecur;
     };
 
     window.addAct = () => {
@@ -575,11 +664,43 @@
         const t   = document.getElementById('g-txt').value.trim();
         const s   = document.getElementById('g-s').value;
         const isMeeting   = c === '회의';
+        const isRecur     = c === '정기회의';
         const isMilestone = document.getElementById('g-milestone').checked;
         const singleDate  = isMeeting || isMilestone;
-        const e = singleDate ? s : document.getElementById('g-e').value;
 
-        if (!t || !s)          { alert("내용과 날짜를 입력하세요!"); return; }
+        if (!t || !s) { alert("내용과 날짜를 입력하세요!"); return; }
+
+        // ── 정기회의 등록 ──
+        if (isRecur) {
+            const rtype = document.getElementById('g-recur-type').value;   // weekly | biweekly
+            const rday  = document.getElementById('g-recur-day').value;    // 0~6
+            const rtime = document.getElementById('g-recur-time').value;
+            const rplace = document.getElementById('g-recur-place').value || '추후지정';
+            const rend  = document.getElementById('g-recur-end').value || '';
+            if (!rtime) { alert("정기회의 시간을 선택하세요!"); return; }
+            if (rend && rend < s) { alert("종료일이 시작기준일보다 빠릅니다!"); return; }
+            if (window._isConnected === false) { alert("⚠️ 서버 미연결 상태입니다. 연결 후 등록하세요."); return; }
+
+            const payload = {
+                manager: mgr, category: '정기회의', content: t,
+                startDate: s,                    // 반복 시작 기준일
+                dueDate: rend || '',             // 반복 종료일 (없으면 6개월)
+                recurrence: rtype, weekday: Number(rday),
+                meetingTime: rtime, meetingPlace: rplace,
+                status: 'active', showOnCal: true,
+                createdAt: new Date().toISOString(), createdBy: currentUser || mgr
+            };
+            const memo = document.getElementById('g-memo').value.trim();
+            if (memo) payload.memo = memo;
+            trackWrite(push(actRef, payload), '정기회의 등록');
+
+            document.getElementById('g-txt').value = '';
+            document.getElementById('g-memo').value = '';
+            document.getElementById('g-recur-end').value = '';
+            return;
+        }
+
+        const e = singleDate ? s : document.getElementById('g-e').value;
         if (!singleDate && !e) { alert("종료일을 입력하세요!"); return; }
         if (e < s)             { alert("종료일이 시작일보다 빠릅니다!"); return; }
 
@@ -622,6 +743,28 @@
         updateDateMode();
     };
 
+    // ── 날짜 유틸 ──
+    function addDays(ds, n) {
+        const d = new Date(ds + 'T00:00:00'); d.setDate(d.getDate() + n); return toStr(d);
+    }
+
+    // ── 정기회의 요약 행 (특정 발생일 ds 기준) ──
+    function recurSummaryRow(a, ds) {
+        const placeDisp = a.meetingPlace === '추후지정'
+            ? ` <span class="badge-tbd">⏳추후지정</span>`
+            : (a.meetingPlace ? ` 📍${a.meetingPlace}` : '');
+        const recurTag = `<span class="badge-tbd" style="background:#f9f0ff;color:#722ed1;border-color:#d3adf7;">🔁${RECUR_LABEL[a.recurrence]||''} ${WD_LABEL[a.weekday]}</span>`;
+        return `<div class="summary-item">
+            <span>
+                <span class="tag tag-정기회의">정기회의</span>
+                <b>[${a.manager}]</b> ${a.content}
+                <span class="due-badge">📅 ${ds.slice(5)}</span>
+                ${a.meetingTime ? ` ⏰${a.meetingTime}` : ''}${placeDisp} ${recurTag}${memoIcon(a)}
+            </span>
+            <input type="checkbox" ${a.showOnCal ? 'checked' : ''} onchange="toggleCal('${a.id}',this.checked)">
+        </div>`;
+    }
+
     // ── 요약 행 생성 (past=true면 회색 저중요 표시) ──
     function summaryRow(a, past, showDue) {
         const placeDisp = a.meetingPlace === '추후지정'
@@ -663,10 +806,30 @@
                 if (a.deleted) return;
 
                 const mIdx = managers.indexOf(a.manager);
-                if (!a.manager || !a.startDate || !a.dueDate || mIdx < 0) {
-                    orphanItems.push(a);
+                if (!a.manager || mIdx < 0) { orphanItems.push(a); return; }
+
+                // ── 정기회의: 발생일을 전개하여 배치 ──
+                if (a.category === '정기회의') {
+                    if (a.startDate == null || a.weekday == null) { orphanItems.push(a); return; }
+                    // 오늘 발생분 → Today, 이번주+차주 발생분 → 2 Weeks 요약, 게시판은 다음 발생일 기준
+                    const occToday = recurOccurrences(a, today, today);
+                    const occTW    = recurOccurrences(a, tw.monStr, tw.sunStr);
+                    const occ2wk   = recurOccurrences(a, tw.monStr, nw.sunStr);
+                    const occNext  = recurOccurrences(a, today, addDays(today, 180));  // 향후 발생일
+
+                    if (a.status === 'active') {
+                        // 요약: 오늘 발생 시 Today, 2주 내 발생 시 2 Weeks
+                        if (occToday.length) sTD += recurSummaryRow(a, occToday[0]);
+                        occ2wk.forEach(ds => { if (ds !== (occToday[0]||'')) sTW_live += recurSummaryRow(a, ds); });
+                    }
+                    // 게시판: 오늘 발생 → TD, 이번주 발생 → TW, 그 외 다음 발생 → NW
+                    if (occToday.length) createRecurItem('TD', mIdx, a, occToday[0]);
+                    else if (occTW.length) createRecurItem('TW', mIdx, a, occTW[0]);
+                    else if (occNext.length) createRecurItem('NW', mIdx, a, occNext[0]);
                     return;
                 }
+
+                if (!a.startDate || !a.dueDate) { orphanItems.push(a); return; }
 
                 // ── 배치 분류 ──
                 const expired  = a.dueDate < today;
@@ -823,6 +986,34 @@
         el.appendChild(item);
     }
 
+    // ── 정기회의 게시판 카드 (특정 발생일 ds 기준) ──
+    function createRecurItem(prefix, mIdx, a, ds) {
+        const el = document.getElementById(`list-${prefix}-${mIdx}`);
+        if (!el) return;
+        const placeDisp = a.meetingPlace === '추후지정'
+            ? `<span class="badge-tbd">⏳추후지정</span>`
+            : (a.meetingPlace ? `📍${a.meetingPlace}` : '');
+        const recurBadge = `🔁${RECUR_LABEL[a.recurrence]||''} ${WD_LABEL[a.weekday]}`;
+        const item = document.createElement('div');
+        item.className = 'activity-item';
+        item.innerHTML = `
+            <div class="item-left-meta">
+                <span class="item-dates">${ds.slice(5)}</span>
+                <span class="item-meeting-info">${a.meetingTime ? `⏰${a.meetingTime} ` : ''}${placeDisp}</span>
+                <div class="item-btns">
+                    <button class="btn-tiny" style="background:#004b91" onclick="openEdit('${a.id}')">수정</button>
+                    <button class="btn-tiny" style="background:#ff4d4f" onclick="delAct('${a.id}')">삭제</button>
+                </div>
+            </div>
+            <div class="item-center-content">
+                <span class="tag tag-정기회의">정기회의</span>
+                <span style="font-size:0.78rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${a.content}">${a.content}</span>
+                <span style="font-size:0.6rem; color:#722ed1; font-weight:700;">${recurBadge}</span>
+                ${a.memo ? `<div class="item-memo" title="${escapeHtml(a.memo)}">📎 ${linkifyMemo(a.memo)}</div>` : ''}
+            </div>`;
+        el.appendChild(item);
+    }
+
     // ── 수정 모달 ──
     window.openEdit = (id) => {
         const a = activities.find(x => x.id === id);
@@ -838,22 +1029,34 @@
         document.getElementById('edit-showCal').checked       = !!a.showOnCal;
 
         const isMeeting = a.category === '회의';
-        const singleDate = isMeeting || !!a.milestone;
+        const isRecur   = a.category === '정기회의';
+        const singleDate = isMeeting || isRecur || !!a.milestone;
         document.getElementById('edit-meeting-fields').style.display = isMeeting ? 'block' : 'none';
+        document.getElementById('edit-recur-fields').style.display = isRecur ? 'block' : 'none';
         document.getElementById('modal-end-row').classList.toggle('hidden', singleDate);
         if (isMeeting) {
             document.getElementById('edit-time').value      = a.meetingTime || '';
             document.getElementById('edit-place').innerHTML = buildPlaceOptions(a.meetingPlace || '추후지정');
+        }
+        if (isRecur) {
+            document.getElementById('edit-recur-type').value = a.recurrence || 'weekly';
+            document.getElementById('edit-recur-day').value  = String(a.weekday != null ? a.weekday : 1);
+            document.getElementById('edit-recur-time').value = a.meetingTime || '';
+            document.getElementById('edit-recur-place').innerHTML = buildPlaceOptions(a.meetingPlace || '추후지정');
+            document.getElementById('edit-recur-end').value = a.dueDate || '';
         }
         document.getElementById('edit-modal').style.display    = 'block';
         document.getElementById('modal-overlay').style.display = 'block';
     };
 
     window.onEditCatChange = () => {
-        const isMeeting   = document.getElementById('edit-category').value === '회의';
+        const cat = document.getElementById('edit-category').value;
+        const isMeeting   = cat === '회의';
+        const isRecur     = cat === '정기회의';
         const isMilestone = document.getElementById('edit-milestone').checked;
         document.getElementById('edit-meeting-fields').style.display = isMeeting ? 'block' : 'none';
-        document.getElementById('modal-end-row').classList.toggle('hidden', isMeeting || isMilestone);
+        document.getElementById('edit-recur-fields').style.display = isRecur ? 'block' : 'none';
+        document.getElementById('modal-end-row').classList.toggle('hidden', isMeeting || isRecur || isMilestone);
     };
 
     window.closeEdit = () => {
@@ -874,13 +1077,39 @@
 
         const cat = document.getElementById('edit-category').value;
         const isMeeting   = cat === '회의';
+        const isRecur     = cat === '정기회의';
         const isMilestone = document.getElementById('edit-milestone').checked;
-        const singleDate  = isMeeting || isMilestone;
-        const startDate = document.getElementById('edit-start').value;
-        const endDate   = singleDate ? startDate : document.getElementById('edit-end').value;
         const content   = document.getElementById('edit-content').value.trim();
+        const startDate = document.getElementById('edit-start').value;
 
-        if (!content || !startDate) { alert("내용과 시작일을 입력하세요!"); return; }
+        if (!content || !startDate) { alert("내용과 시작(기준)일을 입력하세요!"); return; }
+
+        // ── 정기회의 수정 ──
+        if (isRecur) {
+            const rtime = document.getElementById('edit-recur-time').value;
+            if (!rtime) { alert("정기회의 시간을 선택하세요!"); return; }
+            const rend = document.getElementById('edit-recur-end').value || '';
+            if (rend && rend < startDate) { alert("종료일이 기준일보다 빠릅니다!"); return; }
+            const updates = {
+                category: '정기회의', content, startDate,
+                dueDate: rend || '',
+                recurrence: document.getElementById('edit-recur-type').value,
+                weekday: Number(document.getElementById('edit-recur-day').value),
+                meetingTime: rtime,
+                meetingPlace: document.getElementById('edit-recur-place').value || '추후지정',
+                milestone: false,
+                memo: document.getElementById('edit-memo').value.trim() || null,
+                showOnCal: document.getElementById('edit-showCal').checked,
+                updatedAt: new Date().toISOString()
+            };
+            trackWrite(update(ref(db, `activities/${id}`), updates), '정기회의 수정');
+            closeEdit();
+            return;
+        }
+
+        const singleDate  = isMeeting || isMilestone;
+        const endDate   = singleDate ? startDate : document.getElementById('edit-end').value;
+
         if (!singleDate && !endDate) { alert("종료일을 입력하세요!"); return; }
         if (endDate < startDate)    { alert("종료일이 시작일보다 빠릅니다!"); return; }
 
@@ -998,7 +1227,9 @@
                 let evs = '';
                 activities
                     .filter(a => {
-                        if (a.deleted || !a.showOnCal || !a.startDate || !a.dueDate) return false;
+                        if (a.deleted || !a.showOnCal) return false;
+                        if (a.category === '정기회의') return false;   // 정기회의는 아래에서 발생일로 별도 처리
+                        if (!a.startDate || !a.dueDate) return false;
                         if (!(cell.ds >= a.startDate && cell.ds <= a.dueDate)) return false;
                         // 비근무일에는 기간형(여러 날 걸친) 일정은 숨기고, 그날 단독 등록만 표시
                         if (nonWork) {
@@ -1018,6 +1249,17 @@
                         const msCls   = a.milestone ? 'milestone-ev' : '';
                         const msStar  = a.milestone ? '<span class="ms-star">★</span> ' : '';
                         evs += `<div class="cal-event ${pastCls} ${msCls}" style="background:${col}" title="[${a.manager}] ${a.content}${placeLabel}${a.memo ? ' 📎' + a.memo : ''}">${msStar}${timeLabel}${a.content}</div>`;
+                    });
+                // ── 정기회의: 이 셀 날짜가 발생일이면 표시 (비근무일이어도 정기회의는 표시) ──
+                activities
+                    .filter(a => !a.deleted && a.showOnCal && a.category === '정기회의' && a.status === 'active')
+                    .forEach(a => {
+                        const occ = recurOccurrences(a, cell.ds, cell.ds);
+                        if (!occ.length) return;
+                        const col = mColors[managers.indexOf(a.manager)] || '#888';
+                        const tLabel = a.meetingTime ? `${a.meetingTime} ` : '';
+                        const pLabel = (a.meetingPlace && a.meetingPlace !== '추후지정') ? ` @${a.meetingPlace}` : '';
+                        evs += `<div class="cal-event" style="background:${col}; border:1px dashed rgba(255,255,255,0.7);" title="[정기회의] ${a.content}${pLabel}">🔁${tLabel}${a.content}</div>`;
                     });
                 const holLabel = hName ? `<span class="holiday-label" title="${hName}">${hName}</span>` : '';
                 cells += `<div class="cal-cell ${isToday ? 'today-cell' : ''} ${dayCls} ${cell.inMonth ? '' : 'other-month'}"><b>${cell.d}</b>${holLabel}${evs}</div>`;
@@ -1044,9 +1286,14 @@
     function checkMeetings() {
         const now   = new Date();
         const today = todayStr();
-        activities
-            .filter(a => !a.deleted && a.category === '회의' && a.status === 'active' && a.startDate === today && a.meetingTime)
-            .forEach(a => {
+        // 일반 회의 + 정기회의(오늘 발생분)를 모두 대상으로
+        const targets = activities.filter(a => {
+            if (a.deleted || a.status !== 'active' || !a.meetingTime) return false;
+            if (a.category === '회의') return a.startDate === today;
+            if (a.category === '정기회의') return recurOccurrences(a, today, today).length > 0;
+            return false;
+        });
+        targets.forEach(a => {
                 const [h, mi] = a.meetingTime.split(':').map(Number);
                 const mt = new Date(); mt.setHours(h, mi, 0, 0);
                 const diffMin = (mt - now) / 60000;
