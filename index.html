@@ -3,92 +3,64 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PJT Team Master v15.0</title>
-    <!-- 엑셀 Import/Export용 SheetJS (전역 XLSX 제공) -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <title>Team Master v13.6</title>
     <style>
         :root {
-            --main-blue: #004b91;
+            --posco-blue: #004b91;
             --bg: #f4f7fa;
+            /* 캘린더 컬럼: 일·토요일 30% 너비 */
             --cal-cols: 0.3fr 1fr 1fr 1fr 1fr 1fr 0.3fr;
         }
         body { font-family: 'Pretendard', sans-serif; background-color: var(--bg); margin: 0; padding-bottom: 60px; }
-        header { background-color: var(--main-blue); color: white; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1001; }
+        header { background-color: var(--posco-blue); color: white; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1001; }
         .bell-btn { background: rgba(255,255,255,0.15); color: white; border: 1px solid rgba(255,255,255,0.4); border-radius: 5px; padding: 4px 10px; font-size: 0.75rem; cursor: pointer; }
         .bell-btn.on { background: #52c41a; border-color: #52c41a; }
-        /* ─────────── 상단 바 ─────────── */
-        .project-bar { background: #eaf1f8; border-bottom: 2px solid #d0e0f0; position: sticky; top: 56px; z-index: 1000; }
-        .project-bar-inner { max-width: 1600px; margin: 0 auto; padding: 8px 20px; display: flex; align-items: center; gap: 10px; box-sizing: border-box; flex-wrap: wrap; }
-        #project-select { padding: 5px 10px; border: 1px solid #b8cff5; border-radius: 6px; font-size: 0.85rem; font-weight: 700; color: var(--main-blue); background: white; min-width: 180px; }
-        .proj-btn { background: var(--main-blue); color: white; border: none; border-radius: 6px; padding: 5px 12px; font-size: 0.75rem; font-weight: 700; cursor: pointer; }
-        .proj-btn.ghost { background: white; color: var(--main-blue); border: 1px solid var(--main-blue); }
-        .proj-btn.green { background: #237804; }
-        .proj-btn.amber { background: #ad6800; }
-        /* 관리 모달 공용 */
-        #member-modal, #pjt-modal { display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:white; padding:22px; border-radius:10px; box-shadow:0 10px 30px rgba(0,0,0,0.25); z-index:2100; width:460px; max-width:95vw; max-height:85vh; overflow-y:auto; }
-        #member-list, #pjt-list-manage { display:flex; flex-direction:column; gap:6px; margin:12px 0; }
-        .member-row { display:flex; align-items:center; gap:8px; padding:6px 10px; background:#f7f9fc; border:1px solid #e5ebf2; border-radius:6px; }
-        .member-row .m-color { width:16px; height:16px; border-radius:4px; flex-shrink:0; }
-        .member-row .m-name { flex:1; font-weight:700; font-size:0.85rem; }
-        .member-row .m-admin { background:#fff7e6; color:#ad6800; border:1px solid #ffd591; border-radius:4px; padding:3px 8px; font-size:0.7rem; cursor:pointer; }
-        .member-row .m-admin.on { background:#ad6800; color:white; border-color:#ad6800; }
-        .member-row .m-del { background:#ff4d4f; color:white; border:none; border-radius:4px; padding:3px 8px; font-size:0.7rem; cursor:pointer; }
-        .empty-list-hint { color:#aaa; font-size:0.8rem; text-align:center; padding:10px 0; }
-        .pjt-manage-block { border:1px solid #e5ebf2; border-radius:8px; overflow:hidden; }
-        .pjt-mem-assign { display:flex; flex-wrap:wrap; gap:4px 12px; padding:6px 10px 10px 34px; font-size:0.75rem; background:#fbfdff; }
-        .pjt-mem-assign label { display:inline-flex; align-items:center; gap:3px; cursor:pointer; }
-        .pjt-mem-assign .none { color:#aaa; font-style:italic; }
+
+        /* ─────────── To-Do List (달력 위) ─────────── */
+        .todo-section { max-width: 1600px; margin: 20px auto 0; background: white; padding: 14px 16px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); box-sizing: border-box; }
+        .todo-head { font-weight: 800; color: var(--posco-blue); font-size: 0.95rem; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+        .todo-count { font-size: 0.74rem; color: #888; font-weight: 600; }
+        .todo-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+        .todo-table th { background: #f0f5ff; color: #003a7a; font-weight: 700; text-align: left; padding: 6px 8px; border-bottom: 2px solid #d0e0f0; font-size: 0.74rem; }
+        .todo-table td { padding: 6px 8px; border-bottom: 1px solid #eee; vertical-align: middle; }
+        .todo-table tr.done td { opacity: 0.5; }
+        .todo-table tr.done .td-item { text-decoration: line-through; }
+        .todo-mgr { display: inline-block; font-size: 0.62rem; color: white; padding: 1px 7px; border-radius: 8px; font-weight: 700; white-space: nowrap; }
+        .todo-item-star { color: #ff0000; }
+        .st-badge { font-size: 0.68rem; font-weight: 800; padding: 2px 8px; border-radius: 10px; white-space: nowrap; }
+        .st-done  { background: #f6ffed; color: #237804; border: 1px solid #b7eb8f; }
+        .st-delay { background: #fff1f0; color: #cf1322; border: 1px solid #ffa39e; }
+        .st-prog  { background: #e6f7ff; color: #096dd9; border: 1px solid #91d5ff; }
+        .todo-empty { color: #bbb; text-align: center; padding: 14px; font-size: 0.8rem; }
+        .td-btns button { margin-right: 3px; }
+
         /* ─────────── 캘린더 ─────────── */
         .calendar-section { max-width: 1600px; margin: 20px auto; background: white; padding: 15px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
         .cal-head { display: grid; grid-template-columns: var(--cal-cols); gap: 1px; background: #ddd; border: 1px solid #ddd; border-bottom: none; }
         .cal-head div { text-align: center; padding: 5px 2px; font-weight: bold; font-size: 0.75rem; background: #f0f0f0; }
         .cal-head .sun { color: #cf1322; } .cal-head .sat { color: #1a5bbf; }
+
         .cal-week { display: grid; grid-template-columns: var(--cal-cols); gap: 1px; background: #ddd; border: 1px solid #ddd; border-top: none; }
         .cal-cell { background: white; padding: 4px; box-sizing: border-box; overflow: hidden; min-width: 0; }
         .cal-cell.today-cell { background: #fffbe6; outline: 2px solid #faad14; outline-offset: -2px; }
         .cal-cell b { font-size: 0.75rem; display: inline-block; }
         .cal-cell.other-month { background: #fafafa; }
         .cal-cell.other-month b { color: #bbb; }
-        /* 비근무일(주말·공휴일) 표시 */
-        .cal-cell.nonworking { background: #fff5f5; }
-        .cal-cell.other-month.nonworking { background: #f7ecec; }
-        .cal-cell.sat-cell:not(.nonworking) {}
-        .cal-holiday { font-size:0.56rem; color:#cf1322; font-weight:800; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; line-height:1.1; }
-        .wk-next  .cal-holiday { font-size:0.5rem; }
-        .wk-other .cal-holiday { font-size:0; height:3px; overflow:hidden; }
-        /* 공휴일 관리 모달 */
-        #holiday-modal { display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:white; padding:22px; border-radius:10px; box-shadow:0 10px 30px rgba(0,0,0,0.25); z-index:2100; width:460px; max-width:95vw; max-height:85vh; overflow-y:auto; }
-        #holiday-list { display:flex; flex-direction:column; gap:6px; margin:12px 0; }
-        .hol-row { display:flex; align-items:center; gap:8px; padding:6px 10px; background:#fff5f5; border:1px solid #ffd6d6; border-radius:6px; }
-        .hol-row .h-date { font-weight:700; font-size:0.8rem; color:#cf1322; width:110px; flex-shrink:0; }
-        .hol-row .h-name { flex:1; font-size:0.82rem; }
-        .hol-row .h-del { background:#ff4d4f; color:white; border:none; border-radius:4px; padding:3px 8px; font-size:0.7rem; cursor:pointer; }
-        .quick-hol { background:#eef4ff; color:#003a7a; border:1px solid #b8cff5; border-radius:12px; padding:3px 10px; font-size:0.72rem; cursor:pointer; }
-        #national-list { display:flex; flex-direction:column; gap:2px; margin-top:8px; font-size:0.74rem; color:#666; }
-        #national-list .nat-row { display:flex; gap:8px; padding:2px 4px; }
-        #national-list .nat-row .nd { color:#cf1322; font-weight:700; width:110px; }
-        /* ─────────── To-Do List (달력 위) ─────────── */
-        .todo-section { max-width:1600px; margin:20px auto 0; background:white; padding:14px 16px; border-radius:10px; box-shadow:0 4px 10px rgba(0,0,0,0.05); box-sizing:border-box; }
-        .todo-head { font-weight:800; color:var(--main-blue); font-size:0.95rem; margin-bottom:10px; display:flex; align-items:center; gap:8px; }
-        .todo-count { font-size:0.74rem; color:#888; font-weight:600; }
-        .todo-table { width:100%; border-collapse:collapse; font-size:0.8rem; }
-        .todo-table th { background:#f0f5ff; color:#003a7a; font-weight:700; text-align:left; padding:6px 8px; border-bottom:2px solid #d0e0f0; font-size:0.74rem; }
-        .todo-table td { padding:6px 8px; border-bottom:1px solid #eee; vertical-align:middle; }
-        .todo-table tr.done td { opacity:0.5; }
-        .todo-table tr.done .td-item { text-decoration:line-through; }
-        .todo-item-star { color:#ff0000; }
-        .todo-pjt { font-size:0.6rem; background:#eef4ff; color:#003a7a; border:1px solid #cdd7ec; border-radius:3px; padding:1px 5px; margin-right:4px; white-space:nowrap; }
-        .st-badge { font-size:0.68rem; font-weight:800; padding:2px 8px; border-radius:10px; white-space:nowrap; }
-        .st-done { background:#f6ffed; color:#237804; border:1px solid #b7eb8f; }
-        .st-delay { background:#fff1f0; color:#cf1322; border:1px solid #ffa39e; }
-        .st-prog { background:#e6f7ff; color:#096dd9; border:1px solid #91d5ff; }
-        .todo-empty { color:#bbb; text-align:center; padding:14px; font-size:0.8rem; }
-        .td-btns button { margin-right:3px; }
+        /* 공휴일·주말(비근무일) 표시 */
+        .cal-cell.holiday-cell { background: #fff1f0; }
+        .cal-cell.holiday-cell b { color: #cf1322; }
+        .cal-cell.sun-cell b { color: #cf1322; }
+        .cal-cell.sat-cell b { color: #1a5bbf; }
+        .holiday-label { font-size: 0.55rem; color: #cf1322; font-weight: 700; display: block; line-height: 1.15; margin-top: 1px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .wk-other .holiday-label { display: none; }
+
+        /* 주 단위 크기: 이번주 100% / 다음주 60% / 나머지 30% */
         .wk-cur   .cal-cell { min-height: 110px; }
         .wk-next  .cal-cell { min-height: 66px; }
         .wk-other .cal-cell { min-height: 33px; }
         .wk-next  .cal-cell b { font-size: 0.68rem; }
         .wk-other .cal-cell b { font-size: 0.6rem; }
+
         .cal-event { padding: 1px 4px; border-radius: 2px; margin-top: 1px; color: white; font-size: 0.65rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .wk-next  .cal-event { font-size: 0.56rem; padding: 0 3px; }
         .wk-other .cal-event { height: 4px; padding: 0; border-radius: 2px; font-size: 0; }
@@ -96,29 +68,25 @@
         .cal-event.done-ev { opacity: 0.45; text-decoration: line-through; }
         .cal-event.milestone-ev { box-shadow: 0 0 0 1px #ff0000 inset; font-weight: 800; }
         .ms-star { color: #ff0000; }
+
         /* ─────────── 등록 바 ─────────── */
         .reg-bar { max-width: 1600px; margin: 0 auto 16px; padding: 10px 14px; background: white; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); display: flex; flex-direction: column; gap: 6px; box-sizing: border-box; }
         .reg-row { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; font-size: 0.78rem; }
         .reg-bar select, .reg-bar input[type="text"], .reg-bar input[type="date"] { padding: 5px 6px; border: 1px solid #ddd; border-radius: 5px; font-size: 0.78rem; }
         .reg-bar input[type="text"] { flex: 1; min-width: 160px; }
-        .add-btn { background: var(--main-blue); color: white; padding: 6px 16px; font-size: 0.78rem; border: none; cursor: pointer; border-radius: 5px; font-weight: bold; white-space: nowrap; }
+        .add-btn { background: var(--posco-blue); color: white; padding: 6px 16px; font-size: 0.78rem; border: none; cursor: pointer; border-radius: 5px; font-weight: bold; white-space: nowrap; }
         .date-end-wrap { display: flex; align-items: center; gap: 4px; }
         .date-end-wrap.hidden { display: none; }
         .meeting-extra { display: none; background: #eef4ff; border: 1px solid #b8cff5; border-radius: 5px; padding: 5px 8px; gap: 10px; align-items: center; flex-wrap: wrap; font-size: 0.75rem; }
         .meeting-extra.visible { display: flex; }
+        .recur-extra { display: none; background: #f6f0ff; border: 1px solid #d3adf7; border-radius: 5px; padding: 5px 8px; gap: 10px; align-items: center; flex-wrap: wrap; font-size: 0.75rem; }
+        .recur-extra.visible { display: flex; }
+        .recur-extra label { color: #531dab; font-weight: 700; gap: 4px; display: flex; align-items: center; }
         .meeting-extra label { color: #003a7a; font-weight: 700; gap: 4px; display: flex; align-items: center; }
         .milestone-check { display: flex; align-items: center; gap: 4px; font-weight: 700; color: #ad2102; background: #fff2e8; border: 1px solid #ffbb96; border-radius: 5px; padding: 4px 8px; }
         .milestone-check input { width: auto; }
-        .pjt-select-strong { font-weight:700; color:var(--main-blue); border-color:#b8cff5 !important; }
-        /* 담당자 토글 박스 */
-        .mgr-box { display:flex; flex-wrap:wrap; gap:5px; align-items:center; }
-        .mgr-toggle { display:inline-flex; align-items:center; gap:3px; font-size:0.74rem; padding:3px 9px; border:1px solid #cbd5e1; border-radius:14px; cursor:pointer; background:#fff; user-select:none; }
-        .mgr-toggle input { display:none; }
-        .mgr-toggle.checked { background:var(--main-blue); color:#fff; border-color:var(--main-blue); }
-        .mgr-toggle.all-toggle { font-weight:700; }
-        .mgr-toggle.all-toggle.checked { background:#237804; border-color:#237804; }
-        .mgr-box .hint { font-size:0.68rem; color:#aaa; }
-        /* ─────────── 지난 일정 ─────────── */
+
+        /* ─────────── 지난 일정 (하단 토글) ─────────── */
         #past-details { max-width: 1600px; margin: 4px auto 24px; padding: 10px 18px; background: white; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); box-sizing: border-box; }
         #past-details summary { cursor: pointer; font-weight: 800; color: #888; font-size: 0.85rem; list-style: none; }
         #past-details summary::-webkit-details-marker { display: none; }
@@ -129,6 +97,7 @@
         .past-item .p-mgr { flex-shrink: 0; font-weight: 800; color: white; padding: 1px 6px; border-radius: 3px; font-size: 0.65rem; }
         .past-item .p-date { flex-shrink: 0; color: #888; font-size: 0.68rem; width: 100px; }
         .past-item .p-content { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
         /* ─────────── 주요 Activity 요약 ─────────── */
         .summary-container { max-width: 1600px; margin: 0 auto 20px; display: flex; gap: 15px; padding: 0 20px; box-sizing: border-box; }
         .summary-box { flex: 1; padding: 12px; border-radius: 8px; min-height: 80px; min-width: 0; }
@@ -141,79 +110,79 @@
         .summary-box.next  .summary-title { color: #0050b3; border-bottom: 1px solid #91d5ff; }
         .summary-item { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; border-bottom: 1px dashed #ddd; padding-bottom: 3px; font-size: 0.78rem; gap: 6px; }
         .summary-item > span:first-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
-        /* ─────────── 게시판 ─────────── */
+
+        /* ─────────── 게시판 (오늘/이번주/다음주) ─────────── */
         .container { max-width: 1600px; margin: 0 auto; padding: 0 20px; display: flex; flex-direction: column; gap: 12px; box-sizing: border-box; }
         .person-row { display: flex; gap: 12px; align-items: flex-start; }
-        .person-label { width: 110px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; padding-top: 26px; }
-        .person-label-inner { font-weight: 800; font-size: 0.8rem; color: white; padding: 6px 10px; border-radius: 6px; text-align: center; width:100%; box-sizing:border-box; }
+        .person-label { width: 80px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; padding-top: 26px; }
+        .person-label-inner { font-weight: 800; font-size: 0.8rem; color: white; padding: 6px 10px; border-radius: 6px; text-align: center; }
         .week-panel { flex: 1; min-width: 0; }
         .week-header { font-size: 0.72rem; font-weight: 800; padding-bottom: 4px; margin-bottom: 6px; }
         .week-header.today { color: #cf1322; border-bottom: 2px solid #cf1322; }
-        .week-header.this  { color: var(--main-blue); border-bottom: 2px solid var(--main-blue); }
+        .week-header.this  { color: var(--posco-blue); border-bottom: 2px solid var(--posco-blue); }
         .week-header.next  { color: #555; border-bottom: 2px solid #555; }
+        .week-header.past  { color: #aaa; border-bottom: 2px solid #ccc; }
+
         .eng-card { background: white; border-radius: 8px; padding: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); min-height: 36px; }
+        .color-common { border-left: 6px solid #555; }
+        .color-0 { border-left: 6px solid #e74c3c; }
+        .color-1 { border-left: 6px solid #f39c12; }
+        .color-2 { border-left: 6px solid #27ae60; }
+        .color-3 { border-left: 6px solid #2980b9; }
+        .color-4 { border-left: 6px solid #8e44ad; }
         .empty-hint { color: #ccc; font-size: 0.68rem; text-align: center; padding: 6px 0; }
+
         .badge-tbd { display: inline-block; font-size: 0.58rem; background: #fff7e6; color: #d46b08; border: 1px solid #ffd591; border-radius: 3px; padding: 1px 5px; font-weight: 700; margin-left: 2px; }
-        .mgr-tag { display:inline-block; font-size:0.58rem; color:white; padding:1px 6px; border-radius:8px; font-weight:700; flex-shrink:0; }
-        .report-tag { display:inline-block; font-size:0.56rem; padding:1px 5px; border-radius:3px; font-weight:700; flex-shrink:0; border:1px solid; }
-        .rt-진행 { background:#f6ffed; color:#389e0d; border-color:#b7eb8f; }
-        .rt-요약보고 { background:#fff7e6; color:#d46b08; border-color:#ffd591; }
-        .rt-주요업무수행 { background:#f0f5ff; color:#2f54eb; border-color:#adc6ff; }
+
         .activity-item { display: flex; align-items: flex-start; padding: 5px 7px; margin-bottom: 3px; background: #fff; border: 1px solid #eee; border-radius: 4px; gap: 8px; }
         .activity-item.done { opacity: 0.4; background: #f9f9f9; }
+        .activity-item.past { opacity: 0.45; background: #fafafa; }
         .item-left-meta { display: flex; flex-direction: column; gap: 2px; width: 82px; flex-shrink: 0; }
         .item-dates { font-size: 0.58rem; color: #777; }
         .item-meeting-info { font-size: 0.58rem; color: #1a5bbf; font-weight: 600; }
         .item-btns { display: flex; gap: 2px; margin-top: 2px; }
         .btn-tiny { font-size: 0.55rem; padding: 2px 4px; cursor: pointer; border: none; border-radius: 2px; color: white; white-space: nowrap; }
         .item-center-content { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
-        .item-tagline { display:flex; align-items:center; gap:4px; flex-wrap:wrap; }
         .item-memo { font-size: 0.62rem; color: #555; background: #f6f8fa; border: 1px solid #e8ecf0; border-radius: 3px; padding: 2px 5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .item-memo a, .summary-item a { color: #1a5bbf; font-weight: 700; text-decoration: none; }
         .item-memo a:hover, .summary-item a:hover { text-decoration: underline; }
+
         .tag { font-size: 0.58rem; padding: 1px 4px; border-radius: 3px; font-weight: bold; flex-shrink: 0; display: inline-block; }
         .tag-중요 { background: #fff1f0; color: #cf1322; }
         .tag-회의 { background: #e6f7ff; color: #096dd9; }
+        .tag-정기회의 { background: #f9f0ff; color: #722ed1; }
         .tag-이벤트 { background: #fff7e6; color: #d46b08; }
-        .tag-일상 { background: #f6ffed; color: #389e0d; }
+        .tag-To-do { background: #f6ffed; color: #389e0d; }
+        .due-badge { display: inline-block; font-size: 0.6rem; background: #e6f4ff; color: #0958d9; border: 1px solid #91caff; border-radius: 3px; padding: 0 5px; font-weight: 700; }
         .tag-휴가 { background: #f9f0ff; color: #531dab; }
-        /* ─────────── 수정 / 주간보고 모달 ─────────── */
+
+        /* ─────────── 수정 모달 ─────────── */
         #modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1999; }
-        #edit-modal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 22px; border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); z-index: 2000; width: 400px; max-width: 95vw; max-height: 90vh; overflow-y: auto; }
+        #edit-modal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 22px; border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); z-index: 2000; width: 360px; max-width: 95vw; max-height: 90vh; overflow-y: auto; }
         .modal-field { display: flex; flex-direction: column; gap: 4px; }
         .modal-field label { font-size: 0.78rem; font-weight: 700; color: #444; }
         .modal-field input[type="text"], .modal-field input[type="date"], .modal-field select { padding: 6px 8px; border: 1px solid #ddd; border-radius: 5px; font-size: 0.82rem; width: 100%; box-sizing: border-box; }
-        .modal-field input[type="text"]:focus, .modal-field select:focus { border-color: var(--main-blue); outline: none; }
-        .modal-field .mgr-box { border:1px solid #e5ebf2; border-radius:6px; padding:8px; }
+        .modal-field input[type="text"]:focus, .modal-field select:focus { border-color: var(--posco-blue); outline: none; }
         .modal-section { background: #eef4ff; border: 1px solid #b8cff5; border-radius: 6px; padding: 10px; display: flex; flex-direction: column; gap: 8px; }
         .modal-section-title { font-size: 0.75rem; font-weight: 800; color: #003a7a; margin-bottom: 2px; }
         #modal-end-row.hidden { display: none; }
-        /* 주간보고 모달 */
-        #report-overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:2199; }
-        #report-modal { display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:white; padding:22px; border-radius:10px; box-shadow:0 10px 30px rgba(0,0,0,0.25); z-index:2200; width:900px; max-width:96vw; max-height:90vh; overflow-y:auto; }
-        .report-table { width:100%; border-collapse:collapse; font-size:0.8rem; }
-        .report-table th, .report-table td { border:1px solid #bbb; padding:6px 8px; vertical-align:top; }
-        .report-table th { background:#fde9d9; color:#333; text-align:center; font-weight:800; }
-        .report-table .pjt-cell { background:#dce6f2; font-weight:800; text-align:center; color:var(--main-blue); width:130px; }
-        .report-table .gubun-cell { background:#c6d9f0; font-weight:700; text-align:center; width:110px; }
-        .report-table .content-cell { background:#eaf1dd; }
-        .report-table .content-cell ul { margin:0; padding-left:16px; }
-        .report-table .content-cell li { margin-bottom:2px; }
-        .report-empty { color:#aaa; }
+
         /* ─────────── 회의 알림 팝업 ─────────── */
         #meet-popup { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; border: 3px solid #cf1322; border-radius: 12px; box-shadow: 0 12px 40px rgba(0,0,0,0.35); z-index: 3000; width: 340px; max-width: 92vw; padding: 20px; text-align: center; animation: popIn 0.25s ease; }
         @keyframes popIn { from { transform: translate(-50%,-50%) scale(0.85); opacity: 0; } to { transform: translate(-50%,-50%) scale(1); opacity: 1; } }
         #meet-popup .mp-title { font-size: 1rem; font-weight: 900; color: #cf1322; margin-bottom: 10px; }
         #meet-popup .mp-body { font-size: 0.88rem; color: #333; line-height: 1.6; background: #fff1f0; border-radius: 8px; padding: 10px; margin-bottom: 14px; }
         #meet-popup button { background: #cf1322; color: white; border: none; border-radius: 6px; padding: 8px 28px; font-weight: 700; cursor: pointer; font-size: 0.85rem; }
-        /* ─────────── 토스트 ─────────── */
+
+        /* ─────────── 저장 확인 토스트 ─────────── */
         #toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #2d3436; color: #fff; padding: 9px 20px; border-radius: 20px; font-size: 0.78rem; font-weight: 600; z-index: 4000; opacity: 0; transition: opacity 0.3s; pointer-events: none; box-shadow: 0 4px 14px rgba(0,0,0,0.3); }
         #toast.show { opacity: 0.95; }
     </style>
 </head>
 <body>
+
 <header>
-    <div style="font-weight: 900;">PJT Team Master <span style="font-weight: 300;">v15.3</span></div>
+    <div style="font-weight: 900;">POSCO E&C <span style="font-weight: 300;">Team Master v13.6</span></div>
     <div style="display:flex; align-items:center; gap:12px;">
         <span id="user-badge" onclick="changeUser()" style="font-size:0.72rem; padding:3px 10px; border-radius:12px; background:rgba(255,255,255,0.15); cursor:pointer;" title="클릭하여 사용자 변경">👤 사용자 미설정</span>
         <span id="conn-dot" style="font-size:0.72rem; padding:3px 10px; border-radius:12px; background:rgba(255,255,255,0.15);">⏳ 연결 확인 중</span>
@@ -221,29 +190,13 @@
         <div id="clock" style="font-size: 0.8rem;"></div>
     </div>
 </header>
-<!-- ── 상단 바: 팀(조직) 선택 + 관리/도구 버튼 ── -->
-<div class="project-bar">
-    <div class="project-bar-inner">
-        <span style="font-weight:800; color:var(--main-blue); font-size:0.9rem;">🏢 팀/조직</span>
-        <select id="project-select" onchange="switchProject(this.value)"></select>
-        <button class="proj-btn" onclick="createProject()">+ 새 팀</button>
-        <button class="proj-btn ghost" onclick="renameProject()">✎ 이름변경</button>
-        <button class="proj-btn ghost" onclick="manageMembers()">👥 담당자 관리</button>
-        <button class="proj-btn ghost" onclick="managePjts()">🗂 PJT 관리</button>
-        <button class="proj-btn ghost" onclick="manageHolidays()">🎌 공휴일</button>
-        <span style="width:1px; height:20px; background:#c8d6e8;"></span>
-        <button class="proj-btn green" onclick="openReport()">📋 주간보고 생성</button>
-        <button class="proj-btn amber" onclick="exportExcel()">⬇ 엑셀 내보내기</button>
-        <button class="proj-btn amber" onclick="document.getElementById('excel-file').click()">⬆ 엑셀 가져오기</button>
-        <input type="file" id="excel-file" accept=".xlsx,.xls" style="display:none" onchange="importExcel(event)">
-        <span id="proj-meta" style="font-size:0.72rem; color:#888; margin-left:auto;"></span>
-    </div>
-</div>
-<!-- ── To-Do List (달력 위) ── -->
+
+<!-- ── 주요업무 To-Do List (달력 위) ── -->
 <div class="todo-section">
     <div class="todo-head">📋 주요업무 To-Do List <span class="todo-count" id="todo-count"></span></div>
     <div id="todo-list"></div>
 </div>
+
 <!-- ── 캘린더 ── -->
 <div class="calendar-section">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
@@ -252,29 +205,28 @@
         <button onclick="changeMonth(1)" style="cursor:pointer; padding:4px 10px; border:1px solid #ddd; border-radius:4px; background:#fff;">▶</button>
     </div>
     <div id="cal-wrap"></div>
+    <div style="display:flex; gap:14px; margin-top:8px; font-size:0.68rem; color:#888; align-items:center;">
+        <span><span style="display:inline-block; width:10px; height:10px; background:#fff1f0; border:1px solid #ffa39e; border-radius:2px; vertical-align:middle;"></span> 공휴일·지정휴일 (비근무일)</span>
+        <span style="color:#cf1322;">■ 일요일/공휴일</span>
+        <span style="color:#1a5bbf;">■ 토요일</span>
+        <span style="margin-left:auto; color:#bbb;">※ 공휴일은 코드 상단 HOLIDAYS 표에서 매년 갱신</span>
+    </div>
 </div>
-<!-- ── 일정 등록 바 ── -->
+
+<!-- ── 일정 등록 바 (전 담당자 공용) ── -->
 <div class="reg-bar">
     <div class="reg-row">
-        <b style="color:var(--main-blue); font-size:0.8rem;">➕ 일정 등록</b>
-        <select id="g-pjt" class="pjt-select-strong" title="PJT" onchange="onGPjtChange()"></select>
-        <select id="g-report" title="업무구분(보고)"></select>
-        <select id="g-cat" onchange="updateDateMode()" title="카테고리"></select>
+        <b style="color:var(--posco-blue); font-size:0.8rem;">➕ 일정 등록</b>
+        <select id="g-mgr"></select>
+        <select id="g-cat" onchange="updateDateMode()"></select>
         <input type="text" id="g-txt" placeholder="업무내용">
         <label class="milestone-check">
             <input type="checkbox" id="g-milestone" onchange="updateDateMode()"> 🎯 마일스톤
-        </label>
-        <label class="milestone-check" style="background:#f0f5ff; border-color:#adc6ff; color:#003a7a;">
-            <input type="checkbox" id="g-todo"> 📋 To-do
         </label>
         <span id="g-start-label">시작</span>
         <input type="date" id="g-s">
         <span class="date-end-wrap" id="g-end-wrap">완료 <input type="date" id="g-e"></span>
         <button class="add-btn" onclick="addAct()">등록</button>
-    </div>
-    <div class="reg-row" style="align-items:flex-start;">
-        <span style="font-size:0.75rem; color:#666; font-weight:700; padding-top:4px;">👤 담당자</span>
-        <div id="g-mgr-box" class="mgr-box" style="flex:1;"></div>
     </div>
     <div class="reg-row">
         <span style="font-size:0.75rem; color:#666; font-weight:700;">📎 메모</span>
@@ -284,76 +236,89 @@
         <label>🕐 시작시간 <select id="g-mtime"></select></label>
         <label>📍 장소 <select id="g-mplace"></select></label>
     </div>
+    <!-- 정기회의 전용 설정 -->
+    <div class="recur-extra reg-row" id="g-recur">
+        <label>🔁 반복
+            <select id="g-recur-type">
+                <option value="weekly">매주</option>
+                <option value="biweekly">격주</option>
+            </select>
+        </label>
+        <label>📆 요일
+            <select id="g-recur-day">
+                <option value="1">월</option><option value="2">화</option><option value="3">수</option>
+                <option value="4">목</option><option value="5">금</option>
+                <option value="0">일</option><option value="6">토</option>
+            </select>
+        </label>
+        <label>🕐 시간 <select id="g-recur-time"></select></label>
+        <label>📍 장소 <select id="g-recur-place"></select></label>
+        <label>📅 종료일 <input type="date" id="g-recur-end"></label>
+        <span style="font-size:0.65rem; color:#999;">※ 종료일 미지정 시 6개월간 반복</span>
+    </div>
 </div>
-<!-- ── 주요 Activity 요약 ── -->
+
+<!-- ── 주요 Activity 요약: 오늘 / 이번주 / 향후 ── -->
 <div class="summary-container">
     <div class="summary-box today">
         <div class="summary-title">🔥 Today 주요 Activity (<span id="range-today"></span>)</div>
         <div id="sum-today"></div>
     </div>
     <div class="summary-box this">
-        <div class="summary-title">🚩 This Week 주요 Activity</div>
+        <div class="summary-title">🚩 2 Weeks Activity (금주 + 차주 주요 일정)</div>
         <div id="sum-this"></div>
     </div>
     <div class="summary-box next">
-        <div class="summary-title">🔭 향후 주요 Activity (다음 주부터 예정된 모든 일정)</div>
+        <div class="summary-title">📋 To-Do & Milestone</div>
         <div id="sum-next" style="color:#0050b3;"></div>
     </div>
 </div>
+
 <!-- ── 게시판 헤더 ── -->
 <div style="max-width:1600px; margin: 0 auto 6px; padding: 0 20px; display: flex; gap: 12px; box-sizing:border-box;">
-    <div style="width:110px; flex-shrink:0; font-weight:800; font-size:0.8rem; color:var(--main-blue); display:flex; align-items:center; justify-content:center;">PJT</div>
+    <div style="width:80px; flex-shrink:0;"></div>
     <div style="flex:1; font-weight:800; font-size:0.82rem; color:#cf1322; text-align:center;">TODAY</div>
-    <div style="flex:1; font-weight:800; font-size:0.82rem; color:var(--main-blue); text-align:center;">THIS WEEK 남은 일정 (<span id="range-this"></span>)</div>
+    <div style="flex:1; font-weight:800; font-size:0.82rem; color:var(--posco-blue); text-align:center;">THIS WEEK 남은 일정 (<span id="range-this"></span>)</div>
     <div style="flex:1; font-weight:800; font-size:0.82rem; color:#555; text-align:center;">향후 예정 일정</div>
 </div>
+
 <div class="container" id="person-rows"></div>
-<!-- ── 데이터 정합성 진단 바 ── -->
+
+<!-- ── 데이터 정합성 진단 바: DB 건수와 화면 건수를 항상 대조 ── -->
 <div id="diag-bar" style="max-width:1600px; margin:14px auto 4px; padding:6px 18px; font-size:0.72rem; color:#888; box-sizing:border-box;"></div>
-<!-- ── 점검 필요 항목 ── -->
+
+<!-- ── 점검 필요 항목: 어느 칸에도 분류되지 않는 일정 (증발 방지) ── -->
 <div id="orphan-box" style="display:none; max-width:1600px; margin:0 auto 14px; padding:12px 18px; background:#fff1f0; border:1px solid #ffa39e; border-radius:10px; box-sizing:border-box;">
-    <div style="font-weight:800; color:#cf1322; font-size:0.85rem; margin-bottom:8px;">⚠️ 점검 필요 일정 — 날짜 정보 누락으로 게시판에 분류되지 못한 항목입니다. 수정 버튼으로 정보를 보완하세요.</div>
+    <div style="font-weight:800; color:#cf1322; font-size:0.85rem; margin-bottom:8px;">⚠️ 점검 필요 일정 — 담당자 명단 불일치 또는 날짜 정보 누락으로 게시판에 분류되지 못한 항목입니다. 수정 버튼으로 정보를 보완하세요.</div>
     <div id="orphan-list" style="display:flex; flex-direction:column; gap:4px;"></div>
 </div>
-<!-- ── 지난 일정 ── -->
+
+<!-- ── 지난 일정: 하단 토글 패널 (삭제되지 않고 항상 확인 가능) ── -->
 <details id="past-details">
     <summary>🗄 지난 일정 보기 (<span id="past-count">0</span>건) — 완료 여부와 무관하게 계속 확인할 수 있습니다</summary>
     <div id="past-list"></div>
 </details>
+
 <!-- ── 수정 모달 ── -->
 <div id="modal-overlay" onclick="closeEdit()"></div>
 <div id="edit-modal">
     <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:10px; margin-bottom:14px;">
-        <h3 style="margin:0; font-size:0.95rem; color:var(--main-blue);">✏️ 일정 수정</h3>
+        <h3 style="margin:0; font-size:0.95rem; color:var(--posco-blue);">✏️ 일정 수정</h3>
         <button onclick="closeEdit()" style="border:none; background:none; font-size:1.2rem; cursor:pointer; color:#888;">✕</button>
     </div>
     <input type="hidden" id="edit-id">
     <div style="display:flex; flex-direction:column; gap:12px;">
         <div class="modal-field">
-            <label>🗂 PJT</label>
-            <select id="edit-pjt" onchange="onEditPjtChange()"></select>
+            <label>👤 담당자</label>
+            <input type="text" id="edit-manager-display" readonly style="background:#f5f5f5; color:#888; cursor:default;">
         </div>
         <div class="modal-field">
-            <label>👤 담당자 (전원 / 복수 선택 가능)</label>
-            <div id="edit-mgr-box" class="mgr-box"></div>
-        </div>
-        <div style="display:flex; gap:8px;">
-            <div class="modal-field" style="flex:1;">
-                <label>📑 업무구분(보고)</label>
-                <select id="edit-report"></select>
-            </div>
-            <div class="modal-field" style="flex:1;">
-                <label>🏷️ 카테고리</label>
-                <select id="edit-category" onchange="onEditCatChange()"></select>
-            </div>
+            <label>🏷️ 카테고리</label>
+            <select id="edit-category" onchange="onEditCatChange()"></select>
         </div>
         <div style="display:flex; align-items:center; gap:8px; font-size:0.82rem;">
             <input type="checkbox" id="edit-milestone" style="width:auto;" onchange="onEditCatChange()">
             <label for="edit-milestone" style="cursor:pointer; color:#ad2102; font-weight:700;">🎯 마일스톤 (완료 목표일 — 달력에 빨간 별 표시)</label>
-        </div>
-        <div style="display:flex; align-items:center; gap:8px; font-size:0.82rem;">
-            <input type="checkbox" id="edit-todo" style="width:auto;">
-            <label for="edit-todo" style="cursor:pointer; color:#003a7a; font-weight:700;">📋 To-Do 목록에 포함 (마일스톤은 자동 포함)</label>
         </div>
         <div class="modal-field">
             <label>📝 업무 내용</label>
@@ -386,6 +351,35 @@
                 </div>
             </div>
         </div>
+        <div id="edit-recur-fields" style="display:none;">
+            <div class="modal-section" style="background:#f6f0ff; border-color:#d3adf7;">
+                <div class="modal-section-title" style="color:#531dab;">🔁 정기회의 설정</div>
+                <div class="modal-field">
+                    <label>반복 주기</label>
+                    <select id="edit-recur-type"><option value="weekly">매주</option><option value="biweekly">격주</option></select>
+                </div>
+                <div class="modal-field">
+                    <label>요일</label>
+                    <select id="edit-recur-day">
+                        <option value="1">월</option><option value="2">화</option><option value="3">수</option>
+                        <option value="4">목</option><option value="5">금</option>
+                        <option value="0">일</option><option value="6">토</option>
+                    </select>
+                </div>
+                <div class="modal-field">
+                    <label>🕐 시간</label>
+                    <select id="edit-recur-time"></select>
+                </div>
+                <div class="modal-field">
+                    <label>📍 장소</label>
+                    <select id="edit-recur-place"></select>
+                </div>
+                <div class="modal-field">
+                    <label>📅 반복 종료일 (미지정 시 6개월)</label>
+                    <input type="date" id="edit-recur-end">
+                </div>
+            </div>
+        </div>
         <div style="display:flex; align-items:center; gap:8px; font-size:0.82rem;">
             <input type="checkbox" id="edit-showCal" style="width:auto;">
             <label for="edit-showCal" style="cursor:pointer;">📆 캘린더에 표시</label>
@@ -393,89 +387,24 @@
     </div>
     <div style="text-align:right; margin-top:16px; display:flex; justify-content:flex-end; gap:8px;">
         <button onclick="closeEdit()" style="padding:7px 14px; cursor:pointer; border:1px solid #ddd; border-radius:5px; background:#fff; font-size:0.82rem;">취소</button>
-        <button onclick="saveEdit()" style="background:var(--main-blue); color:white; border:none; padding:7px 16px; border-radius:5px; cursor:pointer; font-size:0.82rem; font-weight:700;">저장</button>
+        <button onclick="saveEdit()" style="background:var(--posco-blue); color:white; border:none; padding:7px 16px; border-radius:5px; cursor:pointer; font-size:0.82rem; font-weight:700;">저장</button>
     </div>
 </div>
-<!-- ── 주간보고 모달 ── -->
-<div id="report-overlay" onclick="closeReport()"></div>
-<div id="report-modal">
-    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:10px; margin-bottom:14px;">
-        <h3 style="margin:0; font-size:1rem; color:var(--main-blue);">📋 주간보고 — <span id="report-week"></span></h3>
-        <div style="display:flex; gap:8px; align-items:center;">
-            <button onclick="exportReportExcel()" class="proj-btn amber">⬇ 이 보고서 엑셀로</button>
-            <button onclick="closeReport()" style="border:none; background:none; font-size:1.2rem; cursor:pointer; color:#888;">✕</button>
-        </div>
-    </div>
-    <div style="font-size:0.72rem; color:#888; margin-bottom:10px;">이번 주에 걸친 진행중 일정을 PJT · 업무구분별로 정리했습니다. (완료/지난 일정 제외)</div>
-    <div id="report-body"></div>
-</div>
+
 <!-- ── 회의 30분 전 알림 팝업 ── -->
 <div id="meet-popup">
     <div class="mp-title">🔔 회의 30분 전 알림</div>
     <div class="mp-body" id="mp-body"></div>
     <button onclick="document.getElementById('meet-popup').style.display='none'">확인</button>
 </div>
-<!-- ── 토스트 ── -->
+
+<!-- ── 저장 확인 토스트 ── -->
 <div id="toast"></div>
-<!-- ── 담당자 관리 모달 ── -->
-<div id="modal-overlay-2" onclick="closeMembers()" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:2099;"></div>
-<div id="member-modal">
-    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:10px; margin-bottom:8px;">
-        <h3 style="margin:0; font-size:0.95rem; color:var(--main-blue);">👥 담당자 관리 — <span id="mm-proj-name"></span></h3>
-        <button onclick="closeMembers()" style="border:none; background:none; font-size:1.2rem; cursor:pointer; color:#888;">✕</button>
-    </div>
-    <div style="font-size:0.72rem; color:#888; margin-bottom:8px;">이 팀의 담당자 명단입니다. ⭐ 버튼으로 관리자(모든 일정 삭제 가능)를 지정할 수 있습니다.</div>
-    <div id="member-list"></div>
-    <div style="display:flex; gap:6px; margin-top:10px;">
-        <input type="text" id="new-member-name" placeholder="새 담당자 이름" style="flex:1; padding:6px 8px; border:1px solid #ddd; border-radius:5px; font-size:0.82rem;" onkeydown="if(event.key==='Enter')addMember()">
-        <button onclick="addMember()" style="background:var(--main-blue); color:white; border:none; border-radius:5px; padding:6px 14px; font-weight:700; cursor:pointer; font-size:0.82rem;">추가</button>
-    </div>
-</div>
-<!-- ── PJT 관리 모달 ── -->
-<div id="modal-overlay-3" onclick="closePjts()" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:2099;"></div>
-<div id="pjt-modal">
-    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:10px; margin-bottom:8px;">
-        <h3 style="margin:0; font-size:0.95rem; color:var(--main-blue);">🗂 PJT 관리 — <span id="pm-proj-name"></span></h3>
-        <button onclick="closePjts()" style="border:none; background:none; font-size:1.2rem; cursor:pointer; color:#888;">✕</button>
-    </div>
-    <div style="font-size:0.72rem; color:#888; margin-bottom:8px;">각 PJT에 담당 인원을 지정하면, 일정 등록 시 해당 PJT 인원만 담당자로 표시됩니다. 삭제해도 일정 데이터는 '(미분류)' 행으로 보존됩니다.</div>
-    <div id="pjt-list-manage"></div>
-    <div style="display:flex; gap:6px; margin-top:10px;">
-        <input type="text" id="new-pjt-name" placeholder="새 PJT 이름" style="flex:1; padding:6px 8px; border:1px solid #ddd; border-radius:5px; font-size:0.82rem;" onkeydown="if(event.key==='Enter')addPjt()">
-        <button onclick="addPjt()" style="background:var(--main-blue); color:white; border:none; border-radius:5px; padding:6px 14px; font-weight:700; cursor:pointer; font-size:0.82rem;">추가</button>
-    </div>
-</div>
-<!-- ── 공휴일 관리 모달 ── -->
-<div id="modal-overlay-4" onclick="closeHolidays()" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:2099;"></div>
-<div id="holiday-modal">
-    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:10px; margin-bottom:8px;">
-        <h3 style="margin:0; font-size:0.95rem; color:var(--main-blue);">🎌 공휴일 관리</h3>
-        <button onclick="closeHolidays()" style="border:none; background:none; font-size:1.2rem; cursor:pointer; color:#888;">✕</button>
-    </div>
-    <div style="font-size:0.72rem; color:#888; margin-bottom:8px;">토·일요일과 국가 공휴일(2025~2027)은 <b>자동으로 비근무일</b> 처리됩니다. 아래는 <b>회사 지정휴일</b>(설입일·노사상생의 날·창립기념일 등)을 직접 추가하는 곳입니다. 이 팀에만 적용됩니다.</div>
-    <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
-        <input type="date" id="new-holiday-date" style="padding:6px 8px; border:1px solid #ddd; border-radius:5px; font-size:0.82rem;">
-        <input type="text" id="new-holiday-name" placeholder="휴일 이름" style="flex:1; min-width:120px; padding:6px 8px; border:1px solid #ddd; border-radius:5px; font-size:0.82rem;" onkeydown="if(event.key==='Enter')addHoliday()">
-        <button onclick="addHoliday()" style="background:var(--main-blue); color:white; border:none; border-radius:5px; padding:6px 14px; font-weight:700; cursor:pointer; font-size:0.82rem;">추가</button>
-    </div>
-    <div style="margin-top:6px; display:flex; gap:5px; align-items:center; flex-wrap:wrap;">
-        <span style="font-size:0.72rem; color:#666;">빠른입력:</span>
-        <button class="quick-hol" onclick="quickHolidayName('설입일')">설입일</button>
-        <button class="quick-hol" onclick="quickHolidayName('노사상생의 날')">노사상생의 날</button>
-        <button class="quick-hol" onclick="quickHolidayName('창립기념일')">창립기념일</button>
-        <button class="quick-hol" onclick="quickHolidayName('여름휴가')">여름휴가</button>
-    </div>
-    <div id="holiday-list"></div>
-    <details style="margin-top:10px;">
-        <summary style="cursor:pointer; font-weight:700; color:#888; font-size:0.8rem;">📅 <span id="hl-year"></span>년 국가 공휴일 (자동 적용, 편집 불가)</summary>
-        <div id="national-list"></div>
-    </details>
-</div>
+
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref, onValue, off, remove, push, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
-    // ⚠️ 아래 firebaseConfig 값은 데이터베이스 백엔드 '주소'입니다(사용자 화면에 노출되지 않음).
-    //    실제 DB 프로젝트 식별자라 변경 시 저장이 동작하지 않으므로 그대로 둡니다.
+    import { getDatabase, ref, onValue, remove, push, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
     const firebaseConfig = {
         apiKey: "AIzaSyC8KlvV_-8d1BduBbGt9tlbNHLcrf5Pgok",
         authDomain: "utility-and-piping.firebaseapp.com",
@@ -486,75 +415,54 @@
         measurementId: "G-8VYRBXZ8DQ",
         databaseURL: "https://utility-and-piping-default-rtdb.asia-southeast1.firebasedatabase.app"
     };
+
     const app = initializeApp(firebaseConfig);
     const db  = getDatabase(app);
+    const actRef = ref(db, 'activities');
 
-    // ── 데이터 구조 (범용: 기존 데이터와 분리된 새 루트 'teams'에서 클린 시작) ──
-    //   teams/{pid}/meta       : { name, createdAt, createdBy, admin }
-    //   teams/{pid}/members    : [담당자 명단]
-    //   teams/{pid}/pjts       : [ { name, members:[담당자...] } ]   ← PJT별 담당인원
-    //   teams/{pid}/activities : { 일정들 }   (project·manager·reportType 등)
-    const ROOT = 'teams';
-    const projectsRef = ref(db, ROOT);
-    let currentPid = localStorage.getItem('utm_current_pid') || '';
-    let projectsMeta = {};
-    let actRef = null;
-    let membersRefCur = null, pjtsRefCur = null, holidaysRefCur = null;
-
-    let managers = [];      // 현재 팀 담당자 명단 (문자열 배열)
-    let pjts     = [];      // 현재 팀 PJT 목록 [{name, members:[]}]
-    let curAdmin = '';
-
-    const colorPalette = ["#e74c3c", "#f39c12", "#27ae60", "#2980b9", "#8e44ad", "#16a085", "#c0392b", "#d35400", "#2c3e50", "#9b59b6", "#1abc9c", "#e67e22", "#34495e", "#7f8c8d"];
-    function colorFor(i) { return colorPalette[i % colorPalette.length]; }
-    const UNCLASSIFIED = '(미분류)';
-    function pjtNames() { return pjts.map(p => p.name); }
-    function pjtObj(name) { return pjts.find(p => p.name === name); }
-    function pjtMembersOf(name) { const o = pjtObj(name); return (o && Array.isArray(o.members)) ? o.members : []; }
-    function colorForPjt(p) { const i = pjtNames().indexOf(p); return i >= 0 ? colorFor(i) : '#8a8a8a'; }
-    function colorForMgr(m) { const i = managers.indexOf(m); return i >= 0 ? colorFor((i + 5) % colorPalette.length) : '#8a8a8a'; }
-
-    const cats     = ["중요", "일상", "회의", "이벤트", "휴가"];
-    const reportTypes = ["진행", "요약보고", "주요업무수행"];
-    // 구 데이터 호환: 예전 '2줄보고' 값을 '요약보고'로 정규화
-    const normRT = rt => (rt === '2줄보고') ? '요약보고' : (rt || '진행');
+    const managers = ["Utility 공통", "조갑수", "전해석", "박일경", "조래혁", "김형진"];
+    const mColors  = ["#555555", "#e74c3c", "#f39c12", "#27ae60", "#2980b9", "#8e44ad"];
+    const cats     = ["중요", "To-do", "회의", "정기회의", "이벤트", "휴가"];
     const meetingPlaces = ["추후지정","2대","2소1","2소2","2소3","2소4","2소5","2소6","2휴게","3층","4층","5층"];
 
-    // ── 대한민국 국가 공휴일 (2025~2027, 대체공휴일 포함) — 비근무일 자동 적용 ──
-    const NATIONAL_HOLIDAYS = {
-        // 2025
-        "2025-01-01":"신정", "2025-01-27":"임시공휴일", "2025-01-28":"설날 연휴", "2025-01-29":"설날", "2025-01-30":"설날 연휴",
-        "2025-03-01":"삼일절", "2025-03-03":"삼일절 대체", "2025-05-01":"근로자의 날", "2025-05-05":"어린이날·부처님오신날", "2025-05-06":"대체공휴일",
-        "2025-06-06":"현충일", "2025-08-15":"광복절", "2025-10-03":"개천절", "2025-10-05":"추석 연휴", "2025-10-06":"추석",
-        "2025-10-07":"추석 연휴", "2025-10-08":"추석 대체", "2025-10-09":"한글날", "2025-12-25":"성탄절",
-        // 2026
-        "2026-01-01":"신정", "2026-02-16":"설날 연휴", "2026-02-17":"설날", "2026-02-18":"설날 연휴",
-        "2026-03-01":"삼일절", "2026-03-02":"삼일절 대체", "2026-05-01":"근로자의 날", "2026-05-05":"어린이날",
-        "2026-05-24":"부처님오신날", "2026-05-25":"부처님오신날 대체", "2026-06-03":"지방선거", "2026-06-06":"현충일",
-        "2026-08-15":"광복절", "2026-08-17":"광복절 대체", "2026-09-24":"추석 연휴", "2026-09-25":"추석", "2026-09-26":"추석 연휴",
-        "2026-10-03":"개천절", "2026-10-05":"개천절 대체", "2026-10-09":"한글날", "2026-12-25":"성탄절",
-        // 2027
-        "2027-01-01":"신정", "2027-02-06":"설날 연휴", "2027-02-07":"설날", "2027-02-08":"설날 연휴", "2027-02-09":"설날 대체",
-        "2027-03-01":"삼일절", "2027-05-01":"근로자의 날", "2027-05-05":"어린이날", "2027-05-13":"부처님오신날",
-        "2027-06-06":"현충일", "2027-08-15":"광복절", "2027-08-16":"광복절 대체", "2027-09-14":"추석 연휴", "2027-09-15":"추석",
-        "2027-09-16":"추석 연휴", "2027-10-03":"개천절", "2027-10-04":"개천절 대체", "2027-10-09":"한글날", "2027-10-11":"한글날 대체",
-        "2027-12-25":"성탄절", "2027-12-27":"성탄절 대체"
+    // ── 한국 공휴일 + POSCO/POSCO E&C 지정휴일 (매년 초 갱신) ──
+    //   working day에서 제외 표시되며, 값은 달력에 표시할 휴일명입니다.
+    //   매년 이 표만 갱신하면 됩니다. (음력 명절·대체공휴일 날짜는 해마다 바뀜)
+    const HOLIDAYS = {
+        // ===== 2026년 법정 공휴일 =====
+        "2026-01-01": "신정",
+        "2026-02-16": "설날연휴", "2026-02-17": "설날", "2026-02-18": "설날연휴",
+        "2026-03-01": "삼일절", "2026-03-02": "삼일절 대체",
+        "2026-05-05": "어린이날", "2026-05-24": "부처님오신날", "2026-05-25": "석탄일 대체",
+        "2026-06-03": "지방선거일", "2026-06-06": "현충일",
+        "2026-07-17": "제헌절",
+        "2026-08-15": "광복절", "2026-08-17": "광복절 대체",
+        "2026-09-24": "추석연휴", "2026-09-25": "추석", "2026-09-26": "추석연휴",
+        "2026-10-03": "개천절", "2026-10-05": "개천절 대체", "2026-10-09": "한글날",
+        "2026-12-25": "성탄절",
+        // ===== POSCO / POSCO E&C 지정휴일 (회사 취업규칙 기준 — 확인 후 조정) =====
+        "2026-06-27": "노사상생의 날",
+        // "2026-04-01": "창립기념일",   // POSCO 창립일(4/1). 회사 방침에 따라 활성화
     };
-    let customHolidays = {};   // 회사 지정휴일 (팀별 DB) { "YYYY-MM-DD": "이름" }
-    function holidayName(ds) { return (customHolidays && customHolidays[ds]) || NATIONAL_HOLIDAYS[ds] || null; }
-    function dowOf(ds) { const [y,m,d] = ds.split('-').map(Number); return new Date(y, m-1, d).getDay(); }
-    function isNonWorking(ds) { const w = dowOf(ds); return w === 0 || w === 6 || !!holidayName(ds); }
-    function nonWorkingConfirm(ds) {
-        if (!isNonWorking(ds)) return true;
-        const hn = holidayName(ds);
-        const w = dowOf(ds);
-        const label = hn ? hn : (w === 0 ? '일요일' : '토요일');
-        return confirm(`⚠️ ${ds} (${label})은(는) 비근무일입니다.\n그래도 이 날짜로 일정을 등록/저장할까요?`);
+    function holidayName(ds) { return HOLIDAYS[ds] || null; }
+    // 비근무일 = 토·일 또는 공휴일
+    function isNonWorkingDay(ds) {
+        if (HOLIDAYS[ds]) return true;
+        const dow = new Date(ds + 'T00:00:00').getDay();
+        return dow === 0 || dow === 6;
     }
 
-    // ── 사용자(로그인 주체) 식별 ──
+    // ── 삭제 권한 관리 ──
+    const ADMIN = "조래혁";   // 관리자: 모든 일정 삭제 가능
+    // 현재 사용자(브라우저)를 식별해 저장 — 등록자 본인/관리자만 삭제 가능하도록 사용
+    function getCurrentUser() {
+        let u = localStorage.getItem('utm_current_user');
+        if (!u || managers.indexOf(u) < 0) {
+            u = promptUserSelect();
+        }
+        return u;
+    }
     function promptUserSelect() {
-        if (!managers.length) { alert("담당자 명단이 비어 있습니다.\n먼저 '👥 담당자 관리'에서 담당자를 추가하세요."); return ''; }
         const list = managers.map((m, i) => `${i}: ${m}`).join('\n');
         let idx = prompt(`본인을 선택하세요 (번호 입력)\n${list}`, '');
         idx = parseInt(idx, 10);
@@ -585,7 +493,9 @@
     let activities = [];
     let curDate    = new Date();
 
-    // ── 서버 저장 추적 ──
+    // ── 서버 저장 추적: Local Echo로 인한 유실 방지의 핵심 ──
+    // push/update는 화면에 '먼저' 반영되고 서버 저장은 나중에 완료됨.
+    // 서버 ACK를 받기 전에 탭을 닫으면 데이터가 유실되므로, 완료 여부를 추적·표시한다.
     let pendingWrites = 0;
     let toastTimer;
     function showToast(msg) {
@@ -598,15 +508,19 @@
     function trackWrite(promise, label) {
         pendingWrites++;
         showToast(`⏳ ${label} — 서버 저장 중...`);
-        return promise
+        promise
             .then(() => { pendingWrites--; showToast(`✅ ${label} — 서버 저장 완료`); })
-            .catch(err => { pendingWrites--; alert(`❌ ${label} 실패!\n네트워크를 확인하고 다시 시도하세요.\n(${err.message})`); throw err; });
+            .catch(err => { pendingWrites--; alert(`❌ ${label} 실패!\n네트워크를 확인하고 다시 시도하세요.\n(${err.message})`); });
     }
-    window.addEventListener('beforeunload', (e) => { if (pendingWrites > 0) { e.preventDefault(); e.returnValue = ''; } });
+    // 서버 저장이 끝나기 전에 창을 닫으면 경고
+    window.addEventListener('beforeunload', (e) => {
+        if (pendingWrites > 0) { e.preventDefault(); e.returnValue = ''; }
+    });
 
-    // ── 날짜 유틸 ──
+    // ── 날짜 유틸 (문자열 비교, timezone 오류 방지) ──
     const toStr = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
     const todayStr = () => toStr(new Date());
+
     function getWeekRange(offsetWeeks = 0) {
         const now = new Date();
         const day = now.getDay();
@@ -620,21 +534,46 @@
         return { monStr: toStr(mon), sunStr: toStr(sun), label: `${toLabel(mon)} ~ ${toLabel(fri)}` };
     }
     function overlaps(aStart, aEnd, bStart, bEnd) { return aStart <= bEnd && aEnd >= bStart; }
+
+    // ── 정렬 키: 날짜 + 회의시간 (시간 순서 정렬) ──
     const sortKey = a => `${a.startDate || '9999'}_${a.meetingTime || '00:00'}`;
+
+    // ── 정기회의: 규칙(a)로부터 [from, to] 범위 내 발생 날짜 문자열 배열 계산 ──
+    function recurOccurrences(a, fromStr, toStr_) {
+        const out = [];
+        if (a.category !== '정기회의' || !a.startDate || a.weekday == null) return out;
+        const stepDays = a.recurrence === 'biweekly' ? 14 : 7;
+        // 기준일(startDate)에서 지정 요일의 첫 발생일 찾기
+        const base = new Date(a.startDate + 'T00:00:00');
+        const wd = Number(a.weekday);
+        let first = new Date(base);
+        const diff = (wd - base.getDay() + 7) % 7;
+        first.setDate(base.getDate() + diff);
+        // 반복 종료일: dueDate 있으면 그날까지, 없으면 startDate + 6개월
+        const endLimit = a.dueDate
+            ? new Date(a.dueDate + 'T00:00:00')
+            : new Date(base.getFullYear(), base.getMonth() + 6, base.getDate());
+        const from = new Date(fromStr + 'T00:00:00');
+        const to   = new Date(toStr_ + 'T00:00:00');
+        for (let d = new Date(first); d <= endLimit; d.setDate(d.getDate() + stepDays)) {
+            if (d >= from && d <= to) out.push(toStr(d));
+        }
+        return out;
+    }
+    const RECUR_LABEL = { weekly: '매주', biweekly: '격주' };
+    const WD_LABEL = ['일','월','화','수','목','금','토'];
+
+    // ── 메모 유틸: HTML 이스케이프 + URL 자동 링크화 ──
     const escapeHtml = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-    const linkifyMemo = t => escapeHtml(t).replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank" rel="noopener">🔗 링크 열기</a>');
+    const linkifyMemo = t => escapeHtml(t).replace(/(https?:\/\/[^\s]+)/g,
+        '<a href="$1" target="_blank" rel="noopener">🔗 링크 열기</a>');
+    // 요약용: URL 있으면 🔗 아이콘 링크, 없으면 📎 툴팁
     function memoIcon(a) {
         if (!a.memo) return '';
         const m = a.memo.match(/https?:\/\/[^\s]+/);
-        return m ? ` <a href="${escapeHtml(m[0])}" target="_blank" rel="noopener" title="${escapeHtml(a.memo)}">🔗</a>`
-                 : ` <span title="${escapeHtml(a.memo)}" style="cursor:help;">📎</span>`;
-    }
-    // 담당자 문자열('전원' 또는 'A, B') → 태그 HTML
-    function mgrTagsHtml(mstr) {
-        if (!mstr) return '';
-        if (mstr === '전원') return `<span class="mgr-tag" style="background:#237804">👥전원</span>`;
-        return mstr.split(',').map(s => s.trim()).filter(Boolean)
-            .map(m => `<span class="mgr-tag" style="background:${colorForMgr(m)}">👤${escapeHtml(m)}</span>`).join(' ');
+        return m
+            ? ` <a href="${escapeHtml(m[0])}" target="_blank" rel="noopener" title="${escapeHtml(a.memo)}">🔗</a>`
+            : ` <span title="${escapeHtml(a.memo)}" style="cursor:help;">📎</span>`;
     }
 
     window.onload = () => {
@@ -642,16 +581,44 @@
         const td = new Date();
         document.getElementById('range-this').innerText  = tw.label;
         document.getElementById('range-today').innerText = `${String(td.getMonth()+1).padStart(2,'0')}.${String(td.getDate()).padStart(2,'0')}`;
-        document.getElementById('g-cat').innerHTML     = cats.map(c => `<option value="${c}">${c}</option>`).join('');
-        document.getElementById('g-report').innerHTML  = reportTypes.map(r => `<option value="${r}">${r}</option>`).join('');
-        document.getElementById('g-mtime').innerHTML   = TIME_OPTIONS_HTML;
-        document.getElementById('g-mplace').innerHTML  = buildPlaceOptions();
+
+        // 등록 바 옵션 주입
+        document.getElementById('g-mgr').innerHTML = managers.map(m => `<option value="${m}">${m}</option>`).join('');
+        document.getElementById('g-cat').innerHTML = cats.map(c => `<option value="${c}">${c}</option>`).join('');
+        document.getElementById('g-mtime').innerHTML  = TIME_OPTIONS_HTML;
+        document.getElementById('g-mplace').innerHTML = buildPlaceOptions();
+        document.getElementById('g-recur-time').innerHTML  = TIME_OPTIONS_HTML;
+        document.getElementById('g-recur-place').innerHTML = buildPlaceOptions();
         document.getElementById('g-s').value = todayStr();
+
+        // 모달 옵션 주입
         document.getElementById('edit-category').innerHTML = cats.map(c => `<option value="${c}">${c}</option>`).join('');
-        document.getElementById('edit-report').innerHTML   = reportTypes.map(r => `<option value="${r}">${r}</option>`).join('');
         document.getElementById('edit-time').innerHTML  = TIME_OPTIONS_HTML;
         document.getElementById('edit-place').innerHTML = buildPlaceOptions();
+        document.getElementById('edit-recur-time').innerHTML = TIME_OPTIONS_HTML;
+        document.getElementById('edit-recur-place').innerHTML = buildPlaceOptions();
 
+        renderPersonRows();
+        onValue(actRef, snap => {
+            const data = snap.val();
+            const incoming = data ? Object.keys(data).map(k => ({ id: k, ...data[k] })) : [];
+
+            // ── 최후 방어선: 건수 급감 감지 + 로컬 백업 ──
+            const prevCount = Number(localStorage.getItem('utm_last_count') || 0);
+            if (prevCount > 0 && incoming.length < prevCount) {
+                console.warn(`[UTM] 데이터 건수 감소 감지: ${prevCount} → ${incoming.length}`);
+                const backup = localStorage.getItem('utm_backup');
+                if (backup) console.warn('[UTM] 직전 백업 사용 가능 (localStorage: utm_backup)');
+            }
+            localStorage.setItem('utm_last_count', String(incoming.length));
+            try { localStorage.setItem('utm_backup', JSON.stringify(incoming)); } catch (e) {}
+
+            activities = incoming;
+            refreshUI();
+            checkMeetings();   // 데이터 수신 직후에도 한 번 점검
+        });
+
+        // ── 서버 연결 상태 표시 (오프라인이면 등록 자체를 막음) ──
         onValue(ref(db, '.info/connected'), snap => {
             const ok = snap.val() === true;
             const el = document.getElementById('conn-dot');
@@ -659,392 +626,126 @@
             el.style.background = ok ? 'rgba(82,196,26,0.3)' : 'rgba(255,77,79,0.5)';
             window._isConnected = ok;
         });
+
+        // 알림 버튼 상태 초기화
         updateBellBtn();
+
+        // 현재 사용자 초기화 (삭제 권한 판정용)
+        if (!currentUser || managers.indexOf(currentUser) < 0) {
+            currentUser = getCurrentUser();
+        }
         updateUserBadge();
-
-        onValue(projectsRef, snap => {
-            const data = snap.val() || {};
-            projectsMeta = {};
-            Object.keys(data).forEach(pid => { projectsMeta[pid] = data[pid].meta || { name: pid }; });
-            if (Object.keys(projectsMeta).length === 0) {
-                const pid = 'team_' + Date.now();
-                update(ref(db, `${ROOT}/${pid}`), {
-                    meta: { name: '새 팀', createdAt: new Date().toISOString(), createdBy: currentUser || 'system', admin: '' },
-                    members: [],
-                    pjts: []
-                });
-                return;
-            }
-            fillProjectSelect();
-            if (!currentPid || !projectsMeta[currentPid]) {
-                currentPid = Object.keys(projectsMeta)[0];
-                localStorage.setItem('utm_current_pid', currentPid);
-            }
-            loadProject(currentPid);
-        });
     };
 
-    function fillProjectSelect() {
-        const sel = document.getElementById('project-select');
-        sel.innerHTML = Object.keys(projectsMeta)
-            .map(pid => `<option value="${pid}" ${pid === currentPid ? 'selected' : ''}>${escapeHtml(projectsMeta[pid].name || pid)}</option>`)
-            .join('');
-    }
-
-    window.switchProject = (pid) => {
-        currentPid = pid;
-        localStorage.setItem('utm_current_pid', pid);
-        loadProject(pid);
-    };
-
-    function loadProject(pid) {
-        if (!pid || !projectsMeta[pid]) return;
-        if (actRef)         { off(actRef); }
-        if (membersRefCur)  { off(membersRefCur); }
-        if (pjtsRefCur)     { off(pjtsRefCur); }
-        if (holidaysRefCur) { off(holidaysRefCur); }
-        const meta = projectsMeta[pid];
-        curAdmin = meta.admin || '';
-        document.getElementById('proj-meta').innerText = meta.createdBy ? `생성: ${meta.createdBy}` : '';
-
-        membersRefCur = ref(db, `${ROOT}/${pid}/members`);
-        onValue(membersRefCur, msnap => {
-            const mem = msnap.val();
-            managers = Array.isArray(mem) ? mem : [];
-            updateUserBadge();
-            refreshMgrChoicesG();
-            if (document.getElementById('member-modal').style.display === 'block') renderMemberList();
-            if (document.getElementById('pjt-modal').style.display === 'block') renderPjtManageList();
-            refreshUI();
-        });
-
-        pjtsRefCur = ref(db, `${ROOT}/${pid}/pjts`);
-        onValue(pjtsRefCur, psnap => {
-            const raw = psnap.val();
-            pjts = Array.isArray(raw)
-                ? raw.map(el => typeof el === 'string'
-                    ? { name: el, members: [] }
-                    : { name: el.name, members: Array.isArray(el.members) ? el.members : [] })
-                : [];
-            const names = pjtNames();
-            const opts = names.length ? names.map(x => `<option value="${escapeHtml(x)}">${escapeHtml(x)}</option>`).join('') : `<option value="">(PJT 없음)</option>`;
-            document.getElementById('g-pjt').innerHTML = opts;
-            document.getElementById('edit-pjt').innerHTML = opts;
-            renderPersonRows();
-            refreshMgrChoicesG();
-            if (document.getElementById('pjt-modal').style.display === 'block') renderPjtManageList();
-            refreshUI();
-        });
-
-        holidaysRefCur = ref(db, `${ROOT}/${pid}/holidays`);
-        onValue(holidaysRefCur, hsnap => {
-            customHolidays = hsnap.val() || {};
-            renderCalendar();
-            if (document.getElementById('holiday-modal').style.display === 'block') renderHolidayList();
-        });
-
-        actRef = ref(db, `${ROOT}/${pid}/activities`);
-        onValue(actRef, snap => {
-            const data = snap.val();
-            const incoming = data ? Object.keys(data).map(k => ({ id: k, ...data[k] })) : [];
-            const key = `utm_last_count_${pid}`;
-            const prevCount = Number(localStorage.getItem(key) || 0);
-            if (prevCount > 0 && incoming.length < prevCount) console.warn(`[TM] [${pid}] 건수 감소: ${prevCount} → ${incoming.length}`);
-            localStorage.setItem(key, String(incoming.length));
-            try { localStorage.setItem(`utm_backup_${pid}`, JSON.stringify(incoming)); } catch (e) {}
-            activities = incoming;
-            refreshUI();
-            checkMeetings();
-        });
-    }
-
-    // ── 담당자 토글 박스 (전원/복수 선택) ──
-    function updateMgrChoices(prefix, pjtName, preStr) {
-        const box = document.getElementById(prefix + '-mgr-box');
-        if (!box) return;
-        let mem = pjtMembersOf(pjtName);
-        let fallback = false;
-        if (!mem.length) { mem = managers.slice(); fallback = true; }
-        const pre = preStr || '';
-        const isAll = pre === '전원';
-        const preSet = new Set(isAll ? [] : pre.split(',').map(s => s.trim()).filter(Boolean));
-        let html = `<label class="mgr-toggle all-toggle ${isAll ? 'checked' : ''}"><input type="checkbox" class="mgr-all" value="__ALL__" ${isAll ? 'checked' : ''} onchange="onMgrToggle('${prefix}',this)">👥 전원</label>`;
-        if (mem.length) {
-            html += mem.map(m => `<label class="mgr-toggle ${preSet.has(m) ? 'checked' : ''}"><input type="checkbox" class="mgr-cb" value="${escapeHtml(m)}" ${preSet.has(m) ? 'checked' : ''} onchange="onMgrToggle('${prefix}',this)">${escapeHtml(m)}</label>`).join('');
-        } else {
-            html += `<span class="hint">담당 인원이 없습니다. 'PJT 관리' 또는 '담당자 관리'에서 추가하세요.</span>`;
-        }
-        if (fallback && managers.length) html += `<span class="hint">↳ 이 PJT에 지정된 인원이 없어 전체 명단을 표시합니다. (PJT 관리에서 인원 지정 가능)</span>`;
-        box.innerHTML = html;
-    }
-    window.onMgrToggle = (prefix, el) => {
-        const box = document.getElementById(prefix + '-mgr-box');
-        if (!box) return;
-        if (el.value === '__ALL__') {
-            if (el.checked) box.querySelectorAll('input.mgr-cb').forEach(c => { c.checked = false; c.closest('.mgr-toggle').classList.remove('checked'); });
-        } else if (el.checked) {
-            const all = box.querySelector('input.mgr-all');
-            if (all) { all.checked = false; all.closest('.mgr-toggle').classList.remove('checked'); }
-        }
-        el.closest('.mgr-toggle').classList.toggle('checked', el.checked);
-    };
-    function readMgrBox(prefix) {
-        const box = document.getElementById(prefix + '-mgr-box');
-        if (!box) return '';
-        const all = box.querySelector('input.mgr-all');
-        if (all && all.checked) return '전원';
-        return [...box.querySelectorAll('input.mgr-cb:checked')].map(c => c.value).join(', ');
-    }
-    function refreshMgrChoicesG() {
-        const sel = document.getElementById('g-pjt');
-        updateMgrChoices('g', sel ? sel.value : '', readMgrBox('g'));
-    }
-    window.onGPjtChange = () => updateMgrChoices('g', document.getElementById('g-pjt').value, readMgrBox('g'));
-    window.onEditPjtChange = () => updateMgrChoices('edit', document.getElementById('edit-pjt').value, readMgrBox('edit'));
-
-    // ── 팀(조직) 생성/이름변경 ──
-    window.createProject = () => {
-        const name = prompt("새 팀/조직 이름을 입력하세요 (예: OO본부 설계팀)", "");
-        if (!name || !name.trim()) return;
-        const pid = 'team_' + Date.now();
-        trackWrite(update(ref(db, `${ROOT}/${pid}`), {
-            meta: { name: name.trim(), createdAt: new Date().toISOString(), createdBy: currentUser || '미지정', admin: '' },
-            members: [], pjts: []
-        }), '팀 생성');
-        currentPid = pid;
-        localStorage.setItem('utm_current_pid', pid);
-    };
-    window.renameProject = () => {
-        const cur = projectsMeta[currentPid]?.name || '';
-        const name = prompt("팀/조직 이름 변경", cur);
-        if (!name || !name.trim() || name.trim() === cur) return;
-        trackWrite(update(ref(db, `${ROOT}/${currentPid}/meta`), { name: name.trim() }), '팀 이름변경');
-    };
-
-    // ── 담당자 관리 ──
-    window.manageMembers = () => {
-        document.getElementById('mm-proj-name').innerText = projectsMeta[currentPid]?.name || '';
-        renderMemberList();
-        document.getElementById('member-modal').style.display = 'block';
-        document.getElementById('modal-overlay-2').style.display = 'block';
-    };
-    window.closeMembers = () => {
-        document.getElementById('member-modal').style.display = 'none';
-        document.getElementById('modal-overlay-2').style.display = 'none';
-    };
-    function renderMemberList() {
-        const wrap = document.getElementById('member-list');
-        if (!managers.length) { wrap.innerHTML = '<div class="empty-list-hint">담당자가 없습니다. 아래에서 추가하세요.</div>'; return; }
-        wrap.innerHTML = managers.map((m, i) => `
-            <div class="member-row">
-                <span class="m-color" style="background:${colorForMgr(m)}"></span>
-                <span class="m-name">${escapeHtml(m)}${m === curAdmin ? ' <span style="color:#ad6800;font-size:0.7rem;">(관리자)</span>' : ''}</span>
-                <button class="m-admin ${m === curAdmin ? 'on' : ''}" onclick="setAdmin('${escapeHtml(m)}')" title="관리자 지정/해제">⭐ 관리자</button>
-                <button class="m-del" onclick="removeMember(${i})">삭제</button>
-            </div>`).join('');
-    }
-    window.setAdmin = (name) => {
-        const next = (curAdmin === name) ? '' : name;
-        trackWrite(update(ref(db, `${ROOT}/${currentPid}/meta`), { admin: next }), '관리자 지정').then(() => { curAdmin = next; renderMemberList(); });
-    };
-    window.addMember = () => {
-        const input = document.getElementById('new-member-name');
-        const name = input.value.trim();
-        if (!name) return;
-        if (managers.includes(name)) { alert("이미 있는 담당자입니다."); return; }
-        trackWrite(update(ref(db, `${ROOT}/${currentPid}`), { members: managers.concat([name]) }), '담당자 추가');
-        input.value = '';
-    };
-    window.removeMember = (i) => {
-        const name = managers[i];
-        const hasActs = activities.some(a => !a.deleted && a.manager && a.manager.split(',').map(s=>s.trim()).includes(name));
-        const msg = hasActs
-            ? `'${name}'님이 담당자로 지정된 일정이 있습니다.\n삭제해도 일정 데이터는 삭제되지 않고 이름 태그만 남습니다.\n삭제할까요?`
-            : `'${name}'님을 담당자 명단에서 삭제할까요?`;
-        if (!confirm(msg)) return;
-        const next = managers.filter((_, idx) => idx !== i);
-        // 모든 PJT의 담당인원에서도 제거
-        const nextPjts = pjts.map(p => ({ name: p.name, members: (p.members || []).filter(x => x !== name) }));
-        const upd = { members: next, pjts: nextPjts };
-        if (curAdmin === name) upd['meta/admin'] = '';
-        trackWrite(update(ref(db, `${ROOT}/${currentPid}`), upd), '담당자 삭제');
-    };
-
-    // ── PJT 관리 (담당인원 지정 포함) ──
-    window.managePjts = () => {
-        document.getElementById('pm-proj-name').innerText = projectsMeta[currentPid]?.name || '';
-        renderPjtManageList();
-        document.getElementById('pjt-modal').style.display = 'block';
-        document.getElementById('modal-overlay-3').style.display = 'block';
-    };
-    window.closePjts = () => {
-        document.getElementById('pjt-modal').style.display = 'none';
-        document.getElementById('modal-overlay-3').style.display = 'none';
-    };
-    function renderPjtManageList() {
-        const wrap = document.getElementById('pjt-list-manage');
-        if (!pjts.length) { wrap.innerHTML = '<div class="empty-list-hint">PJT가 없습니다. 아래에서 추가하세요.</div>'; return; }
-        wrap.innerHTML = pjts.map((p, i) => {
-            const assign = managers.length
-                ? managers.map(m => `<label><input type="checkbox" ${ (p.members||[]).includes(m) ? 'checked' : '' } onchange="togglePjtMember(${i},'${escapeHtml(m)}',this.checked)">${escapeHtml(m)}</label>`).join('')
-                : `<span class="none">담당자 명단이 비어 있습니다. '담당자 관리'에서 먼저 추가하세요.</span>`;
-            return `<div class="pjt-manage-block">
-                <div class="member-row" style="border:none; background:#eef4ff; border-radius:0;">
-                    <span class="m-color" style="background:${colorFor(i)}"></span>
-                    <span class="m-name">${escapeHtml(p.name)}</span>
-                    <button class="m-del" onclick="removePjt(${i})">삭제</button>
-                </div>
-                <div class="pjt-mem-assign">${assign}</div>
-            </div>`;
-        }).join('');
-    }
-    window.togglePjtMember = (i, name, chk) => {
-        let mem = Array.isArray(pjts[i].members) ? pjts[i].members.slice() : [];
-        if (chk) { if (!mem.includes(name)) mem.push(name); } else { mem = mem.filter(x => x !== name); }
-        const next = pjts.map((x, idx) => idx === i ? { name: x.name, members: mem } : { name: x.name, members: x.members || [] });
-        trackWrite(update(ref(db, `${ROOT}/${currentPid}`), { pjts: next }), 'PJT 담당인원 변경');
-    };
-    window.addPjt = () => {
-        const input = document.getElementById('new-pjt-name');
-        const name = input.value.trim();
-        if (!name) return;
-        if (pjtNames().includes(name)) { alert("이미 있는 PJT입니다."); return; }
-        const next = pjts.concat([{ name, members: [] }]);
-        trackWrite(update(ref(db, `${ROOT}/${currentPid}`), { pjts: next }), 'PJT 추가');
-        input.value = '';
-    };
-    window.removePjt = (i) => {
-        const name = pjts[i].name;
-        const cnt = activities.filter(a => !a.deleted && a.project === name).length;
-        const msg = cnt
-            ? `'${name}' PJT에 ${cnt}건의 일정이 있습니다.\n삭제해도 일정은 보존되며 '(미분류)' 행으로 이동합니다.\n삭제할까요?`
-            : `'${name}' PJT를 삭제할까요?`;
-        if (!confirm(msg)) return;
-        trackWrite(update(ref(db, `${ROOT}/${currentPid}`), { pjts: pjts.filter((_, idx) => idx !== i) }), 'PJT 삭제');
-    };
-
-    // ── 공휴일(회사 지정휴일) 관리 ──
-    window.manageHolidays = () => {
-        document.getElementById('hl-year').innerText = curDate.getFullYear();
-        document.getElementById('new-holiday-date').value = todayStr();
-        document.getElementById('new-holiday-name').value = '';
-        renderHolidayList();
-        renderNationalList();
-        document.getElementById('holiday-modal').style.display = 'block';
-        document.getElementById('modal-overlay-4').style.display = 'block';
-    };
-    window.closeHolidays = () => {
-        document.getElementById('holiday-modal').style.display = 'none';
-        document.getElementById('modal-overlay-4').style.display = 'none';
-    };
-    window.quickHolidayName = (name) => { document.getElementById('new-holiday-name').value = name; };
-    function renderHolidayList() {
-        const wrap = document.getElementById('holiday-list');
-        const keys = Object.keys(customHolidays || {}).sort();
-        if (!keys.length) { wrap.innerHTML = '<div class="empty-list-hint">등록된 회사 지정휴일이 없습니다.</div>'; return; }
-        wrap.innerHTML = keys.map(ds => {
-            const w = dowOf(ds);
-            const dow = ['일','월','화','수','목','금','토'][w];
-            return `<div class="hol-row">
-                <span class="h-date">${ds} (${dow})</span>
-                <span class="h-name">${escapeHtml(customHolidays[ds])}</span>
-                <button class="h-del" onclick="removeHoliday('${ds}')">삭제</button>
-            </div>`;
-        }).join('');
-    }
-    function renderNationalList() {
-        const y = String(curDate.getFullYear());
-        const wrap = document.getElementById('national-list');
-        const rows = Object.keys(NATIONAL_HOLIDAYS).filter(ds => ds.startsWith(y)).sort();
-        wrap.innerHTML = rows.length
-            ? rows.map(ds => { const dow = ['일','월','화','수','목','금','토'][dowOf(ds)]; return `<div class="nat-row"><span class="nd">${ds} (${dow})</span><span>${escapeHtml(NATIONAL_HOLIDAYS[ds])}</span></div>`; }).join('')
-            : '<div class="empty-list-hint">해당 연도 내장 공휴일 데이터가 없습니다. (직접 추가하세요)</div>';
-    }
-    window.addHoliday = () => {
-        const ds = document.getElementById('new-holiday-date').value;
-        const name = document.getElementById('new-holiday-name').value.trim();
-        if (!ds || !name) { alert("날짜와 휴일 이름을 모두 입력하세요."); return; }
-        if (!currentPid) { alert("팀이 선택되지 않았습니다."); return; }
-        trackWrite(update(ref(db, `${ROOT}/${currentPid}/holidays`), { [ds]: name }), '지정휴일 추가');
-        document.getElementById('new-holiday-name').value = '';
-    };
-    window.removeHoliday = (ds) => {
-        if (!confirm(`'${ds} — ${customHolidays[ds]}' 지정휴일을 삭제할까요?`)) return;
-        trackWrite(update(ref(db, `${ROOT}/${currentPid}/holidays`), { [ds]: null }), '지정휴일 삭제');
-    };
-
-    // ── 게시판 행 렌더 (PJT별) ──
+    // ── 담당자별 행: 지난 / 오늘 / 이번주 / 향후 4패널 ──
     function renderPersonRows() {
         const container = document.getElementById('person-rows');
-        container.innerHTML = '';
-        if (!pjts.length) {
-            container.innerHTML = `<div style="text-align:center; color:#aaa; padding:30px; font-size:0.85rem;">🗂 등록된 PJT가 없습니다. 상단 <b>PJT 관리</b>에서 PJT를 추가하세요.</div>`;
-        }
         const panels = [
             { prefix: 'TD', cls: 'today', title: '오늘' },
             { prefix: 'TW', cls: 'this',  title: '이번 주 (남은 일정)' },
             { prefix: 'NW', cls: 'next',  title: '향후 예정 일정' }
         ];
-        const rowKeys = pjtNames().slice();
-        rowKeys.push(UNCLASSIFIED);
-        rowKeys.forEach((name, i) => {
-            const isUnc = (name === UNCLASSIFIED);
-            const color = isUnc ? '#8a8a8a' : colorFor(i);
+        managers.forEach((name, i) => {
             const row = document.createElement('div');
             row.className = 'person-row';
-            row.id = `pjtrow-${i}`;
-            if (isUnc) row.style.display = 'none';
             const label = document.createElement('div');
             label.className = 'person-label';
-            label.innerHTML = `<div class="person-label-inner" style="background:${color}">${escapeHtml(name)}</div>`;
+            label.innerHTML = `<div class="person-label-inner" style="background:${mColors[i]}">${name}</div>`;
             row.appendChild(label);
+
+            const colorClass = i === 0 ? 'color-common' : `color-${i-1}`;
             panels.forEach(p => {
                 const panel = document.createElement('div');
-                panel.className = 'week-panel';
+                panel.className = 'week-panel' + (p.narrow ? ' narrow' : '');
                 panel.innerHTML = `<div class="week-header ${p.cls}">${p.title}</div>
-                    <div class="eng-card" style="border-left:6px solid ${color}"><div id="list-${p.prefix}-${i}"></div></div>`;
+                    <div class="eng-card ${colorClass}"><div id="list-${p.prefix}-${i}"></div></div>`;
                 row.appendChild(panel);
             });
             container.appendChild(row);
         });
     }
-    function pjtRowIndex(project) {
-        const i = pjtNames().indexOf(project);
-        return i >= 0 ? i : pjts.length;   // 미분류 행
-    }
 
+    // ── 등록 바: 회의/마일스톤/정기회의 선택 시 UI 전환 ──
     window.updateDateMode = () => {
-        const isMeeting   = document.getElementById('g-cat').value === '회의';
+        const cat = document.getElementById('g-cat').value;
+        const isMeeting   = cat === '회의';
+        const isRecur     = cat === '정기회의';
         const isMilestone = document.getElementById('g-milestone').checked;
         const singleDate  = isMeeting || isMilestone;
         document.getElementById('g-meet').classList.toggle('visible', isMeeting);
-        document.getElementById('g-end-wrap').classList.toggle('hidden', singleDate);
-        document.getElementById('g-start-label').textContent = isMeeting ? '날짜' : (isMilestone ? '목표일' : '시작');
+        document.getElementById('g-recur').classList.toggle('visible', isRecur);
+        // 정기회의는 기준 날짜(반복 시작일)만 사용, 종료일칸 숨김
+        document.getElementById('g-end-wrap').classList.toggle('hidden', singleDate || isRecur);
+        document.getElementById('g-start-label').textContent =
+            isRecur ? '시작기준일' : (isMeeting ? '날짜' : (isMilestone ? '목표일' : '시작'));
+        // 정기회의 선택 시 마일스톤 체크 비활성
+        document.getElementById('g-milestone').disabled = isRecur;
     };
 
     window.addAct = () => {
-        const project = document.getElementById('g-pjt').value;
-        const mgr = readMgrBox('g');
-        const rep = document.getElementById('g-report').value;
+        const mgr = document.getElementById('g-mgr').value;
         const c   = document.getElementById('g-cat').value;
         const t   = document.getElementById('g-txt').value.trim();
         const s   = document.getElementById('g-s').value;
         const isMeeting   = c === '회의';
+        const isRecur     = c === '정기회의';
         const isMilestone = document.getElementById('g-milestone').checked;
         const singleDate  = isMeeting || isMilestone;
+
+        if (!t || !s) { alert("내용과 날짜를 입력하세요!"); return; }
+
+        // ── 정기회의 등록 ──
+        if (isRecur) {
+            const rtype = document.getElementById('g-recur-type').value;   // weekly | biweekly
+            const rday  = document.getElementById('g-recur-day').value;    // 0~6
+            const rtime = document.getElementById('g-recur-time').value;
+            const rplace = document.getElementById('g-recur-place').value || '추후지정';
+            const rend  = document.getElementById('g-recur-end').value || '';
+            if (!rtime) { alert("정기회의 시간을 선택하세요!"); return; }
+            if (rend && rend < s) { alert("종료일이 시작기준일보다 빠릅니다!"); return; }
+            if (window._isConnected === false) { alert("⚠️ 서버 미연결 상태입니다. 연결 후 등록하세요."); return; }
+
+            const payload = {
+                manager: mgr, category: '정기회의', content: t,
+                startDate: s,                    // 반복 시작 기준일
+                dueDate: rend || '',             // 반복 종료일 (없으면 6개월)
+                recurrence: rtype, weekday: Number(rday),
+                meetingTime: rtime, meetingPlace: rplace,
+                status: 'active', showOnCal: true,
+                createdAt: new Date().toISOString(), createdBy: currentUser || mgr
+            };
+            const memo = document.getElementById('g-memo').value.trim();
+            if (memo) payload.memo = memo;
+            trackWrite(push(actRef, payload), '정기회의 등록');
+
+            document.getElementById('g-txt').value = '';
+            document.getElementById('g-memo').value = '';
+            document.getElementById('g-recur-end').value = '';
+            return;
+        }
+
         const e = singleDate ? s : document.getElementById('g-e').value;
-        if (!pjts.length)      { alert("먼저 '🗂 PJT 관리'에서 PJT를 추가하세요!"); return; }
-        if (!project)          { alert("PJT를 선택하세요!"); return; }
-        if (!t || !s)          { alert("내용과 날짜를 입력하세요!"); return; }
         if (!singleDate && !e) { alert("종료일을 입력하세요!"); return; }
         if (e < s)             { alert("종료일이 시작일보다 빠릅니다!"); return; }
-        if (!nonWorkingConfirm(s)) return;   // 비근무일(주말·공휴일) 경고
+
+        // 회의를 비근무일(주말·공휴일)에 등록하려 하면 확인
+        if (isMeeting && isNonWorkingDay(s)) {
+            const hn = holidayName(s);
+            const label = hn ? `${s} (${hn})` : `${s} (주말)`;
+            if (!confirm(`⚠️ ${label}은 비근무일입니다.\n회의를 이 날에 등록하시겠습니까?`)) return;
+        }
+
         const payload = {
-            project, manager: mgr || '', reportType: rep || '진행',
-            category: c, content: t, startDate: s, dueDate: e,
-            status: 'active', milestone: isMilestone, showOnCal: true,
-            todo: document.getElementById('g-todo').checked,
-            createdAt: new Date().toISOString(), createdBy: currentUser || ''
+            manager:   mgr,
+            category:  c,
+            content:   t,
+            startDate: s,
+            dueDate:   e,
+            status:    'active',
+            milestone: isMilestone,
+            showOnCal: true,   // ★ 기본 표시: 등록 즉시 캘린더에서 확인 가능 (사라짐 방지)
+            createdAt: new Date().toISOString(),
+            createdBy: currentUser || mgr   // ★ 등록자 기록 (삭제 권한 판정용)
         };
         if (isMeeting) {
             payload.meetingTime  = document.getElementById('g-mtime').value  || '';
@@ -1052,79 +753,161 @@
         }
         const memo = document.getElementById('g-memo').value.trim();
         if (memo) payload.memo = memo;
-        if (window._isConnected === false) { alert("⚠️ 서버에 연결되어 있지 않습니다.\n네트워크 연결 후 다시 등록하세요."); return; }
-        if (!actRef || !currentPid) { alert("팀이 선택되지 않았습니다."); return; }
+
+        if (window._isConnected === false) {
+            alert("⚠️ 현재 서버에 연결되어 있지 않습니다.\n네트워크 연결 후 다시 등록하세요. (지금 등록하면 유실될 수 있습니다)");
+            return;
+        }
         trackWrite(push(actRef, payload), '일정 등록');
+
         document.getElementById('g-txt').value       = '';
         document.getElementById('g-e').value         = '';
         document.getElementById('g-memo').value      = '';
         document.getElementById('g-milestone').checked = false;
-        document.getElementById('g-todo').checked = false;
-        refreshMgrChoicesG();   // 담당자 선택 초기화
         updateDateMode();
     };
+
+    // ── 날짜 유틸 ──
+    function addDays(ds, n) {
+        const d = new Date(ds + 'T00:00:00'); d.setDate(d.getDate() + n); return toStr(d);
+    }
+
+    // ── 정기회의 요약 행 (특정 발생일 ds 기준) ──
+    function recurSummaryRow(a, ds) {
+        const placeDisp = a.meetingPlace === '추후지정'
+            ? ` <span class="badge-tbd">⏳추후지정</span>`
+            : (a.meetingPlace ? ` 📍${a.meetingPlace}` : '');
+        const recurTag = `<span class="badge-tbd" style="background:#f9f0ff;color:#722ed1;border-color:#d3adf7;">🔁${RECUR_LABEL[a.recurrence]||''} ${WD_LABEL[a.weekday]}</span>`;
+        return `<div class="summary-item">
+            <span>
+                <span class="tag tag-정기회의">정기회의</span>
+                <b>[${a.manager}]</b> ${a.content}
+                <span class="due-badge">📅 ${ds.slice(5)}</span>
+                ${a.meetingTime ? ` ⏰${a.meetingTime}` : ''}${placeDisp} ${recurTag}${memoIcon(a)}
+            </span>
+            <input type="checkbox" ${a.showOnCal ? 'checked' : ''} onchange="toggleCal('${a.id}',this.checked)">
+        </div>`;
+    }
+
+    // ── 요약 행 생성 (past=true면 회색 저중요 표시) ──
+    function summaryRow(a, past, showDue) {
+        const placeDisp = a.meetingPlace === '추후지정'
+            ? ` <span class="badge-tbd">⏳추후지정</span>`
+            : (a.meetingPlace ? ` 📍${a.meetingPlace}` : '');
+        const msStar = a.milestone ? `<span class="ms-star">★</span> ` : '';
+        const grayStyle = past ? ' style="opacity:0.55; filter:grayscale(0.8);"' : '';
+        const textGray = past ? ' style="color:#999;"' : '';
+        // Work Plan & Milestone: 완료일(목표일) 표시
+        let dueBadge = '';
+        if (showDue && a.dueDate) {
+            const label = a.milestone ? '🎯 목표' : '📅 완료';
+            dueBadge = ` <span class="due-badge">${label} ${a.dueDate.slice(5)}</span>`;
+        }
+        return `<div class="summary-item"${grayStyle}>
+            <span${textGray}>
+                ${msStar}<span class="tag tag-${a.category}">${a.category}</span>
+                <b>[${a.manager}]</b> ${a.content}
+                ${a.meetingTime ? ` ⏰${a.meetingTime}` : ''}${placeDisp}${dueBadge}${memoIcon(a)}
+            </span>
+            <input type="checkbox" ${a.showOnCal ? 'checked' : ''} onchange="toggleCal('${a.id}',this.checked)">
+        </div>`;
+    }
 
     // ── 화면 갱신 ──
     function refreshUI() {
         document.querySelectorAll('[id^="list-"]').forEach(el => el.innerHTML = '');
         const today = todayStr();
         const tw = getWeekRange(0);
-        let sTD = '', sTW = '', sNW = '';
+        const nw = getWeekRange(1);   // 차주
+        let sTD = '', sTW_live = '', sTW_past = '', sNW = '';
         const pastItems = [];
         const orphanItems = [];
-        let uncUsed = false;
 
         activities
             .slice()
             .sort((a, b) => sortKey(a).localeCompare(sortKey(b)))
             .forEach(a => {
                 if (a.deleted) return;
+
+                const mIdx = managers.indexOf(a.manager);
+                if (!a.manager || mIdx < 0) { orphanItems.push(a); return; }
+
+                // ── 정기회의: 발생일을 전개하여 배치 ──
+                if (a.category === '정기회의') {
+                    if (a.startDate == null || a.weekday == null) { orphanItems.push(a); return; }
+                    // 오늘 발생분 → Today, 이번주+차주 발생분 → 2 Weeks 요약, 게시판은 다음 발생일 기준
+                    const occToday = recurOccurrences(a, today, today);
+                    const occTW    = recurOccurrences(a, tw.monStr, tw.sunStr);
+                    const occ2wk   = recurOccurrences(a, tw.monStr, nw.sunStr);
+                    const occNext  = recurOccurrences(a, today, addDays(today, 180));  // 향후 발생일
+
+                    if (a.status === 'active') {
+                        // 요약: 오늘 발생 시 Today, 2주 내 발생 시 2 Weeks
+                        if (occToday.length) sTD += recurSummaryRow(a, occToday[0]);
+                        occ2wk.forEach(ds => { if (ds !== (occToday[0]||'')) sTW_live += recurSummaryRow(a, ds); });
+                    }
+                    // 게시판: 오늘 발생 → TD, 이번주 발생 → TW, 그 외 다음 발생 → NW
+                    if (occToday.length) createRecurItem('TD', mIdx, a, occToday[0]);
+                    else if (occTW.length) createRecurItem('TW', mIdx, a, occTW[0]);
+                    else if (occNext.length) createRecurItem('NW', mIdx, a, occNext[0]);
+                    return;
+                }
+
                 if (!a.startDate || !a.dueDate) { orphanItems.push(a); return; }
 
-                const rowIdx = pjtRowIndex(a.project);
-                if (rowIdx === pjts.length) uncUsed = true;
-
+                // ── 배치 분류 ──
                 const expired  = a.dueDate < today;
                 const inToday  = !expired && a.startDate <= today;
                 const inTW     = !expired && !inToday && overlaps(a.startDate, a.dueDate, tw.monStr, tw.sunStr);
                 const isFuture = !expired && a.startDate > tw.sunStr;
 
-                if (expired) { pastItems.push(a); return; }
+                // 2 Weeks 범위: 금주 월요일 ~ 차주 일요일
+                const in2wk = overlaps(a.startDate, a.dueDate, tw.monStr, nw.sunStr);
+                const isMajor = ['중요','이벤트','회의'].includes(a.category) || a.milestone;
 
-                if ((['중요','이벤트','회의'].includes(a.category) || a.milestone) && a.status === 'active') {
-                    const placeDisp = a.meetingPlace === '추후지정'
-                        ? ` <span class="badge-tbd">⏳추후지정</span>`
-                        : (a.meetingPlace ? ` 📍${a.meetingPlace}` : '');
-                    const msStar = a.milestone ? `<span class="ms-star">★</span> ` : '';
-                    const mgrTxt = a.manager ? ' · ' + escapeHtml(a.manager) : '';
-                    const html = `<div class="summary-item">
-                        <span>
-                            ${msStar}<span class="tag tag-${a.category}">${a.category}</span>
-                            <b>[${escapeHtml(a.project || UNCLASSIFIED)}${mgrTxt}]</b> ${escapeHtml(a.content)}
-                            ${a.meetingTime ? ` ⏰${a.meetingTime}` : ''}${placeDisp}${memoIcon(a)}
-                        </span>
-                        <input type="checkbox" ${a.showOnCal ? 'checked' : ''} onchange="toggleCal('${a.id}',this.checked)">
-                    </div>`;
-                    // 주요 Activity 요약은 겹침 기준으로 분류 (다음주까지 연속 시 이번주+향후 모두 표기)
-                    if (a.startDate <= today) sTD += html;                                       // Today: 진행중
-                    if (overlaps(a.startDate, a.dueDate, tw.monStr, tw.sunStr)) sTW += html;      // This Week: 이번주 걸침
-                    if (a.dueDate > tw.sunStr) sNW += html;                                       // 향후: 다음주 이후까지 연속되거나 미래 시작
+                // 지난 일정은 하단 토글 패널로 모음 (달력에는 계속 표시됨)
+                if (expired) {
+                    pastItems.push(a);
+                    // 지난 주요 일정이 2주 범위에 걸쳐 있으면 2 Weeks 요약 하단(회색)에 유지
+                    if (isMajor && a.status === 'active' && a.dueDate >= tw.monStr) {
+                        sTW_past += summaryRow(a, true);
+                    }
+                    return;
                 }
 
-                if (inToday)       createItem('TD', rowIdx, a);
-                else if (inTW)     createItem('TW', rowIdx, a);
-                else               createItem('NW', rowIdx, a);
+                // ── Today 요약 (현행 유지: 중요/이벤트/회의/마일스톤) ──
+                if (isMajor && a.status === 'active') {
+                    const row = summaryRow(a, false);
+                    if (inToday) sTD += row;
+                    // 2 Weeks 요약: 금주+차주 주요 일정 (진행/예정)
+                    if (in2wk && !inToday) sTW_live += row;
+                    else if (in2wk && inToday) sTW_live += row;
+                }
+
+                // ── To-Do & Milestone 요약: To-do 카테고리 + 마일스톤 (완료일 표시) ──
+                if ((a.category === 'To-do' || a.milestone) && a.status === 'active') {
+                    sNW += summaryRow(a, false, true);
+                }
+
+                // 게시판 패널 (오늘 / 이번주 / 향후)
+                if (inToday)       createItem('TD', mIdx, a);
+                else if (inTW)     createItem('TW', mIdx, a);
+                else               createItem('NW', mIdx, a);
             });
+
+        // 2 Weeks: 진행/예정 먼저, 지난(회색) 나중
+        const sTW = sTW_live + (sTW_past ? `<div style="margin-top:6px; border-top:1px dashed #ccc; padding-top:4px; font-size:0.6rem; color:#bbb;">지난 일정</div>${sTW_past}` : '');
 
         document.getElementById('sum-today').innerHTML = sTD || '<span style="color:#aaa">오늘 주요 일정 없음</span>';
         document.getElementById('sum-this').innerHTML  = sTW || '<span style="color:#aaa">주요 일정 없음</span>';
-        document.getElementById('sum-next').innerHTML  = sNW || '<span style="color:#aaa">주요 일정 없음</span>';
+        document.getElementById('sum-next').innerHTML  = sNW || '<span style="color:#aaa">등록된 To-Do·마일스톤 없음</span>';
 
-        const uncRow = document.getElementById(`pjtrow-${pjts.length}`);
-        if (uncRow) uncRow.style.display = uncUsed ? 'flex' : 'none';
+        // 빈 패널 표시
+        document.querySelectorAll('[id^="list-"]').forEach(el => {
+            if (!el.children.length) el.innerHTML = '<div class="empty-hint">—</div>';
+        });
 
-        document.querySelectorAll('[id^="list-"]').forEach(el => { if (!el.children.length) el.innerHTML = '<div class="empty-hint">—</div>'; });
-
+        // ── 데이터 정합성 진단: DB 총건수와 화면 표시건수를 비교해 유실 즉시 감지 ──
         const totalDb    = activities.length;
         const softDeleted = activities.filter(a => a.deleted).length;
         const shownBoard = document.querySelectorAll('.activity-item').length;
@@ -1133,6 +916,7 @@
             diag.innerHTML = `📊 DB 총 <b>${totalDb}</b>건 · 삭제됨 ${softDeleted} · 지난 ${pastItems.length} · 진행/예정 ${shownBoard}` +
                 (orphanItems.length ? ` · <span style="color:#cf1322;font-weight:800;">⚠️ 점검필요 ${orphanItems.length}</span>` : '');
         }
+
         renderPastList(pastItems);
         renderOrphanList(orphanItems);
         renderTodoList();
@@ -1140,20 +924,20 @@
     }
 
     // ── 주요업무 To-Do List (달력 위) ──
-    // To-Do = (todo 체크 OR 마일스톤) && 삭제 안 됨. 기간이 지나도 삭제 전까지 계속 유지.
+    // To-Do = (To-do 카테고리 OR 마일스톤) && 삭제 안 됨. 기간이 지나도 삭제 전까지 계속 유지.
     function renderTodoList() {
         const wrap = document.getElementById('todo-list');
         if (!wrap) return;
         const today = todayStr();
         const items = activities
-            .filter(a => !a.deleted && (a.todo || a.milestone))
+            .filter(a => !a.deleted && (a.category === 'To-do' || a.milestone))
             .sort((a, b) =>
                 (a.status === 'done' ? 1 : 0) - (b.status === 'done' ? 1 : 0)
                 || String(a.dueDate || '9999').localeCompare(String(b.dueDate || '9999')));
         const openCnt = items.filter(i => i.status !== 'done').length;
         document.getElementById('todo-count').textContent = `(진행 ${openCnt}건 / 총 ${items.length}건)`;
         if (!items.length) {
-            wrap.innerHTML = '<div class="todo-empty">등록된 To-Do가 없습니다. 일정 등록 시 📋 To-do 또는 🎯 마일스톤을 체크하세요.</div>';
+            wrap.innerHTML = '<div class="todo-empty">등록된 To-Do가 없습니다. 카테고리를 📋 To-do로 선택하거나 🎯 마일스톤을 체크하면 여기에 올라옵니다.</div>';
             return;
         }
         let rows = '';
@@ -1164,12 +948,12 @@
                 ? '<span class="st-badge st-done">✅ 완료</span>'
                 : (delayed ? '<span class="st-badge st-delay">⏰ 지연</span>' : '<span class="st-badge st-prog">▶ 진행중</span>');
             const star = a.milestone ? '<span class="todo-item-star">★</span> ' : '';
-            const pjt  = a.project ? `<span class="todo-pjt">${escapeHtml(a.project)}</span>` : '';
-            const mgr  = mgrTagsHtml(a.manager) || '<span style="color:#bbb">-</span>';
+            const col  = mColors[managers.indexOf(a.manager)] || '#888';
+            const mgr  = a.manager ? `<span class="todo-mgr" style="background:${col}">${escapeHtml(a.manager)}</span>` : '<span style="color:#bbb">-</span>';
             const due  = a.dueDate || '-';
             rows += `<tr class="${done ? 'done' : ''}">
                 <td>${badge}</td>
-                <td class="td-item" title="${escapeHtml(a.content || '')}">${star}${pjt}${escapeHtml(a.content || '')}</td>
+                <td class="td-item" title="${escapeHtml(a.content || '')}">${star}${escapeHtml(a.content || '')}</td>
                 <td>${mgr}</td>
                 <td style="white-space:nowrap;${delayed ? 'color:#cf1322;font-weight:700;' : ''}">${due}</td>
                 <td class="td-btns" style="white-space:nowrap;">
@@ -1183,13 +967,14 @@
             <thead><tr>
                 <th style="width:80px;">진행현황</th>
                 <th>항목</th>
-                <th style="width:170px;">담당자</th>
+                <th style="width:120px;">담당자</th>
                 <th style="width:100px;">기한</th>
                 <th style="width:150px;">작업</th>
             </tr></thead>
             <tbody>${rows}</tbody></table>`;
     }
 
+    // ── 분류 불가 항목: 담당자 미일치·날짜 누락 등으로 어느 칸에도 못 들어가는 일정을 노출 (증발 방지) ──
     function renderOrphanList(items) {
         const box = document.getElementById('orphan-box');
         const wrap = document.getElementById('orphan-list');
@@ -1200,10 +985,12 @@
         items.forEach(a => {
             const el = document.createElement('div');
             el.className = 'past-item';
+            const reason = !a.manager ? '담당자 없음'
+                : (managers.indexOf(a.manager) < 0 ? `담당자 명단 불일치 (${a.manager})` : '날짜 정보 누락');
             el.innerHTML = `
                 <span class="p-date">${a.startDate || '?'} ~ ${a.dueDate || '?'}</span>
-                <span class="tag tag-중요">날짜 정보 누락</span>
-                <span class="p-content" title="${escapeHtml(a.content || '')}">${escapeHtml(a.content || '(내용 없음)')}</span>
+                <span class="tag tag-중요">${reason}</span>
+                <span class="p-content" title="${escapeHtml(a.content || '')}">${a.content || '(내용 없음)'}</span>
                 <div class="item-btns">
                     <button class="btn-tiny" style="background:#004b91" onclick="openEdit('${a.id}')">수정</button>
                     <button class="btn-tiny" style="background:#ff4d4f" onclick="delAct('${a.id}')">삭제</button>
@@ -1212,6 +999,7 @@
         });
     }
 
+    // ── 지난 일정 토글 패널 렌더링 (최근 지난 순) ──
     function renderPastList(items) {
         const wrap = document.getElementById('past-list');
         document.getElementById('past-count').textContent = items.length;
@@ -1220,16 +1008,16 @@
         items
             .sort((a, b) => sortKey(b).localeCompare(sortKey(a)))
             .forEach(a => {
-                const col = colorForPjt(a.project);
+                const col = mColors[managers.indexOf(a.manager)] || '#888';
                 const dateDisp = (a.category === '회의') ? a.startDate : `${a.startDate} ~ ${a.dueDate}`;
                 const msStar = a.milestone ? `<span class="ms-star">★</span> ` : '';
                 const el = document.createElement('div');
                 el.className = 'past-item';
                 el.innerHTML = `
-                    <span class="p-mgr" style="background:${col}">${escapeHtml(a.project || UNCLASSIFIED)}</span>
+                    <span class="p-mgr" style="background:${col}">${a.manager}</span>
                     <span class="p-date">${dateDisp}</span>
                     <span class="tag tag-${a.category}">${a.category}</span>
-                    <span class="p-content" title="${escapeHtml(a.content)}">${msStar}${a.manager ? '<b>['+escapeHtml(a.manager)+']</b> ' : ''}${escapeHtml(a.content)}${a.meetingTime ? ` ⏰${a.meetingTime}` : ''}</span>
+                    <span class="p-content" title="${escapeHtml(a.content)}">${msStar}${a.content}${a.meetingTime ? ` ⏰${a.meetingTime}` : ''}</span>
                     ${a.memo ? `<span class="item-memo" title="${escapeHtml(a.memo)}">📎</span>` : ''}
                     <div class="item-btns">
                         <button class="btn-tiny" style="background:#004b91" onclick="openEdit('${a.id}')">수정</button>
@@ -1240,16 +1028,20 @@
             });
     }
 
-    function createItem(prefix, rowIdx, a) {
-        const el = document.getElementById(`list-${prefix}-${rowIdx}`);
+    function createItem(prefix, mIdx, a) {
+        const el = document.getElementById(`list-${prefix}-${mIdx}`);
         if (!el) return;
-        const dateDisp = (a.category === '회의') ? a.startDate.slice(5) : `${a.startDate.slice(5)}~${a.dueDate.slice(5)}`;
+        const dateDisp = (a.category === '회의')
+            ? a.startDate.slice(5)
+            : `${a.startDate.slice(5)}~${a.dueDate.slice(5)}`;
         const placeDisp = a.category === '회의'
-            ? (a.meetingPlace === '추후지정' ? `<span class="badge-tbd">⏳추후지정</span>` : (a.meetingPlace ? `📍${a.meetingPlace}` : ''))
+            ? (a.meetingPlace === '추후지정'
+                ? `<span class="badge-tbd">⏳추후지정</span>`
+                : (a.meetingPlace ? `📍${a.meetingPlace}` : ''))
             : '';
         const meetInfo = (a.category === '회의')
-            ? `<span class="item-meeting-info">${a.meetingTime ? `⏰${a.meetingTime} ` : ''}${placeDisp}</span>` : '';
-        const rt = normRT(a.reportType);
+            ? `<span class="item-meeting-info">${a.meetingTime ? `⏰${a.meetingTime} ` : ''}${placeDisp}</span>`
+            : '';
         const item = document.createElement('div');
         item.className = `activity-item ${a.status === 'done' ? 'done' : ''}`;
         item.innerHTML = `
@@ -1263,12 +1055,36 @@
                 </div>
             </div>
             <div class="item-center-content">
-                <div class="item-tagline">
-                    ${mgrTagsHtml(a.manager)}
-                    <span class="report-tag rt-${rt}">${rt}</span>
-                    <span class="tag tag-${a.category}">${a.category}</span>
+                <span class="tag tag-${a.category}">${a.category}</span>
+                <span style="font-size:0.78rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${a.content}">${a.milestone ? '<span class="ms-star">★</span> ' : ''}${a.content}</span>
+                ${a.memo ? `<div class="item-memo" title="${escapeHtml(a.memo)}">📎 ${linkifyMemo(a.memo)}</div>` : ''}
+            </div>`;
+        el.appendChild(item);
+    }
+
+    // ── 정기회의 게시판 카드 (특정 발생일 ds 기준) ──
+    function createRecurItem(prefix, mIdx, a, ds) {
+        const el = document.getElementById(`list-${prefix}-${mIdx}`);
+        if (!el) return;
+        const placeDisp = a.meetingPlace === '추후지정'
+            ? `<span class="badge-tbd">⏳추후지정</span>`
+            : (a.meetingPlace ? `📍${a.meetingPlace}` : '');
+        const recurBadge = `🔁${RECUR_LABEL[a.recurrence]||''} ${WD_LABEL[a.weekday]}`;
+        const item = document.createElement('div');
+        item.className = 'activity-item';
+        item.innerHTML = `
+            <div class="item-left-meta">
+                <span class="item-dates">${ds.slice(5)}</span>
+                <span class="item-meeting-info">${a.meetingTime ? `⏰${a.meetingTime} ` : ''}${placeDisp}</span>
+                <div class="item-btns">
+                    <button class="btn-tiny" style="background:#004b91" onclick="openEdit('${a.id}')">수정</button>
+                    <button class="btn-tiny" style="background:#ff4d4f" onclick="delAct('${a.id}')">삭제</button>
                 </div>
-                <span style="font-size:0.78rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${escapeHtml(a.content)}">${a.milestone ? '<span class="ms-star">★</span> ' : ''}${escapeHtml(a.content)}</span>
+            </div>
+            <div class="item-center-content">
+                <span class="tag tag-정기회의">정기회의</span>
+                <span style="font-size:0.78rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${a.content}">${a.content}</span>
+                <span style="font-size:0.6rem; color:#722ed1; font-weight:700;">${recurBadge}</span>
                 ${a.memo ? `<div class="item-memo" title="${escapeHtml(a.memo)}">📎 ${linkifyMemo(a.memo)}</div>` : ''}
             </div>`;
         el.appendChild(item);
@@ -1278,69 +1094,110 @@
     window.openEdit = (id) => {
         const a = activities.find(x => x.id === id);
         if (!a) return;
-        const pjtSel = document.getElementById('edit-pjt');
-        let names = pjtNames();
-        if (a.project && names.indexOf(a.project) < 0) names = names.concat([a.project]);
-        pjtSel.innerHTML = (names.length ? names : ['']).map(p => `<option value="${escapeHtml(p)}">${p ? escapeHtml(p) : '(PJT 없음)'}</option>`).join('');
-        pjtSel.value = a.project || '';
-        updateMgrChoices('edit', a.project || '', a.manager || '');
+        document.getElementById('edit-id').value              = id;
+        document.getElementById('edit-manager-display').value = a.manager;
+        document.getElementById('edit-category').value        = a.category;
+        document.getElementById('edit-content').value         = a.content;
+        document.getElementById('edit-memo').value            = a.memo || '';
+        document.getElementById('edit-milestone').checked     = !!a.milestone;
+        document.getElementById('edit-start').value           = a.startDate;
+        document.getElementById('edit-end').value             = a.dueDate;
+        document.getElementById('edit-showCal').checked       = !!a.showOnCal;
 
-        document.getElementById('edit-id').value          = id;
-        document.getElementById('edit-report').value      = reportTypes.includes(normRT(a.reportType)) ? normRT(a.reportType) : '진행';
-        document.getElementById('edit-category').value    = a.category;
-        document.getElementById('edit-content').value     = a.content;
-        document.getElementById('edit-memo').value        = a.memo || '';
-        document.getElementById('edit-milestone').checked = !!a.milestone;
-        document.getElementById('edit-todo').checked      = !!a.todo;
-        document.getElementById('edit-start').value       = a.startDate;
-        document.getElementById('edit-end').value         = a.dueDate;
-        document.getElementById('edit-showCal').checked   = !!a.showOnCal;
         const isMeeting = a.category === '회의';
-        const singleDate = isMeeting || !!a.milestone;
+        const isRecur   = a.category === '정기회의';
+        const singleDate = isMeeting || isRecur || !!a.milestone;
         document.getElementById('edit-meeting-fields').style.display = isMeeting ? 'block' : 'none';
+        document.getElementById('edit-recur-fields').style.display = isRecur ? 'block' : 'none';
         document.getElementById('modal-end-row').classList.toggle('hidden', singleDate);
         if (isMeeting) {
             document.getElementById('edit-time').value      = a.meetingTime || '';
             document.getElementById('edit-place').innerHTML = buildPlaceOptions(a.meetingPlace || '추후지정');
         }
+        if (isRecur) {
+            document.getElementById('edit-recur-type').value = a.recurrence || 'weekly';
+            document.getElementById('edit-recur-day').value  = String(a.weekday != null ? a.weekday : 1);
+            document.getElementById('edit-recur-time').value = a.meetingTime || '';
+            document.getElementById('edit-recur-place').innerHTML = buildPlaceOptions(a.meetingPlace || '추후지정');
+            document.getElementById('edit-recur-end').value = a.dueDate || '';
+        }
         document.getElementById('edit-modal').style.display    = 'block';
         document.getElementById('modal-overlay').style.display = 'block';
     };
+
     window.onEditCatChange = () => {
-        const isMeeting   = document.getElementById('edit-category').value === '회의';
+        const cat = document.getElementById('edit-category').value;
+        const isMeeting   = cat === '회의';
+        const isRecur     = cat === '정기회의';
         const isMilestone = document.getElementById('edit-milestone').checked;
         document.getElementById('edit-meeting-fields').style.display = isMeeting ? 'block' : 'none';
-        document.getElementById('modal-end-row').classList.toggle('hidden', isMeeting || isMilestone);
+        document.getElementById('edit-recur-fields').style.display = isRecur ? 'block' : 'none';
+        document.getElementById('modal-end-row').classList.toggle('hidden', isMeeting || isRecur || isMilestone);
     };
+
     window.closeEdit = () => {
         document.getElementById('edit-modal').style.display    = 'none';
         document.getElementById('modal-overlay').style.display = 'none';
     };
+
     window.saveEdit = () => {
         const id  = document.getElementById('edit-id').value;
+
+        // ★ 안전장치: 수정 대상이 실제 DB에 존재하는지 확인 (경합/오작동으로 엉뚱한 노드 생성 방지)
         const target = activities.find(x => x.id === id);
-        if (!id || !target) { alert("수정 대상을 찾을 수 없습니다.\n새로고침 후 다시 시도하세요."); closeEdit(); return; }
+        if (!id || !target) {
+            alert("수정 대상을 찾을 수 없습니다.\n화면을 새로고침한 후 다시 시도하세요.");
+            closeEdit();
+            return;
+        }
+
         const cat = document.getElementById('edit-category').value;
         const isMeeting   = cat === '회의';
+        const isRecur     = cat === '정기회의';
         const isMilestone = document.getElementById('edit-milestone').checked;
-        const singleDate  = isMeeting || isMilestone;
-        const startDate = document.getElementById('edit-start').value;
-        const endDate   = singleDate ? startDate : document.getElementById('edit-end').value;
         const content   = document.getElementById('edit-content').value.trim();
-        if (!content || !startDate) { alert("내용과 시작일을 입력하세요!"); return; }
+        const startDate = document.getElementById('edit-start').value;
+
+        if (!content || !startDate) { alert("내용과 시작(기준)일을 입력하세요!"); return; }
+
+        // ── 정기회의 수정 ──
+        if (isRecur) {
+            const rtime = document.getElementById('edit-recur-time').value;
+            if (!rtime) { alert("정기회의 시간을 선택하세요!"); return; }
+            const rend = document.getElementById('edit-recur-end').value || '';
+            if (rend && rend < startDate) { alert("종료일이 기준일보다 빠릅니다!"); return; }
+            const updates = {
+                category: '정기회의', content, startDate,
+                dueDate: rend || '',
+                recurrence: document.getElementById('edit-recur-type').value,
+                weekday: Number(document.getElementById('edit-recur-day').value),
+                meetingTime: rtime,
+                meetingPlace: document.getElementById('edit-recur-place').value || '추후지정',
+                milestone: false,
+                memo: document.getElementById('edit-memo').value.trim() || null,
+                showOnCal: document.getElementById('edit-showCal').checked,
+                updatedAt: new Date().toISOString()
+            };
+            trackWrite(update(ref(db, `activities/${id}`), updates), '정기회의 수정');
+            closeEdit();
+            return;
+        }
+
+        const singleDate  = isMeeting || isMilestone;
+        const endDate   = singleDate ? startDate : document.getElementById('edit-end').value;
+
         if (!singleDate && !endDate) { alert("종료일을 입력하세요!"); return; }
         if (endDate < startDate)    { alert("종료일이 시작일보다 빠릅니다!"); return; }
-        if (!nonWorkingConfirm(startDate)) return;   // 비근무일(주말·공휴일) 경고
+
         const updates = {
-            project:   document.getElementById('edit-pjt').value || '',
-            manager:   readMgrBox('edit'),
-            reportType: document.getElementById('edit-report').value || '진행',
-            category:  cat, content, startDate, dueDate: endDate,
+            category:  cat,
+            content:   content,
+            startDate: startDate,
+            dueDate:   endDate,
             memo:      document.getElementById('edit-memo').value.trim() || null,
             milestone: isMilestone,
-            todo: document.getElementById('edit-todo').checked,
             showOnCal: document.getElementById('edit-showCal').checked,
-            updatedAt: new Date().toISOString()
+            updatedAt: new Date().toISOString()   // ★ Teams 수정 알림(Apps Script)이 변경 감지에 사용
         };
         if (isMeeting) {
             updates.meetingTime  = document.getElementById('edit-time').value  || '';
@@ -1349,54 +1206,74 @@
             updates.meetingTime  = null;
             updates.meetingPlace = null;
         }
-        trackWrite(update(actNode(id), updates), '일정 수정');
+        trackWrite(update(ref(db, `activities/${id}`), updates), '일정 수정');
         closeEdit();
     };
 
-    function actNode(id) { return ref(db, `${ROOT}/${currentPid}/activities/${id}`); }
-    window.toggleStat = (id, s) => trackWrite(update(actNode(id), { status: s === 'done' ? 'active' : 'done' }), '완료 상태 변경');
-
+    window.toggleStat = (id, s) => trackWrite(update(ref(db, `activities/${id}`), { status: s === 'done' ? 'active' : 'done' }), '완료 상태 변경');
+    // ── 소프트 삭제 (권한 제한): 등록자 본인 또는 관리자(조래혁)만 가능 ──
     window.delAct = (id) => {
         const a = activities.find(x => x.id === id);
         if (!a) { alert("대상을 찾을 수 없습니다."); return; }
-        if (managers.length && (!currentUser || managers.indexOf(currentUser) < 0)) { currentUser = promptUserSelect(); updateUserBadge(); }
-        const owner = a.createdBy || '';
-        const isAdmin = curAdmin && currentUser === curAdmin;
-        const isOwner = currentUser && currentUser === owner;
-        const permissive = !curAdmin || !owner || !currentUser;
-        if (!permissive && !isAdmin && !isOwner) {
-            alert(`⛔ 삭제 권한이 없습니다.\n\n이 일정은 '${owner}'님이 등록했습니다.\n삭제는 등록자 본인 또는 관리자(${curAdmin})만 가능합니다.\n\n현재 사용자: ${currentUser || '(미설정)'}`);
+
+        // 현재 사용자 확인 (미설정 시 선택 요청)
+        if (!currentUser || managers.indexOf(currentUser) < 0) {
+            currentUser = promptUserSelect();
+            updateUserBadge();
+        }
+
+        const owner = a.createdBy || a.manager;   // 등록자(구 데이터는 담당자로 대체)
+        const isAdmin = currentUser === ADMIN;
+        const isOwner = currentUser === owner;
+
+        if (!isAdmin && !isOwner) {
+            alert(`⛔ 삭제 권한이 없습니다.\n\n이 일정은 '${owner}'님이 등록했습니다.\n삭제는 등록자 본인 또는 관리자(${ADMIN})만 가능합니다.\n\n현재 사용자: ${currentUser}`);
             return;
         }
-        const who = isAdmin ? `관리자(${curAdmin})` : (isOwner ? '등록자 본인' : '권한 확인 생략');
-        if (confirm(`이 일정을 삭제할까요?  [${who}]\n\n"${a.content}"\n\n(DB에는 보존되며 복구 가능)`)) {
-            trackWrite(update(actNode(id), { deleted: true, deletedAt: new Date().toISOString(), deletedBy: currentUser || '미설정' }), '일정 삭제');
+
+        const who = isAdmin ? `관리자(${ADMIN})` : '등록자 본인';
+        if (confirm(`이 일정을 삭제할까요?  [${who} 권한]\n\n"${a.content}"\n\n(DB에는 보존되며 관리자가 복구할 수 있습니다)`)) {
+            trackWrite(update(ref(db, `activities/${id}`), {
+                deleted: true,
+                deletedAt: new Date().toISOString(),
+                deletedBy: currentUser
+            }), '일정 삭제');
         }
     };
-    window.toggleCal = (id, chk) => trackWrite(update(actNode(id), { showOnCal: chk }), '캘린더 표시 변경');
+    window.toggleCal = (id, chk) => trackWrite(update(ref(db, `activities/${id}`), { showOnCal: chk }), '캘린더 표시 변경');
 
-    // ── 캘린더 ──
+    // ── 캘린더: 주 단위 가변 크기 렌더링 ──
     function renderCalendar() {
         const wrap = document.getElementById('cal-wrap');
         const y = curDate.getFullYear(), m = curDate.getMonth();
         document.getElementById('cal-month-title').innerText = `${y}.${String(m+1).padStart(2,'0')}`;
+
+        // 요일 헤더
         let html = `<div class="cal-head">
             <div class="sun">일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div class="sat">토</div>
         </div>`;
+
+        // 이번주/다음주 판별 기준 (일요일 시작 주)
         const now = new Date();
         const wkSun = new Date(now); wkSun.setDate(now.getDate() - now.getDay()); wkSun.setHours(0,0,0,0);
         const curWkStart = toStr(wkSun);
         const curWkEnd   = toStr(new Date(wkSun.getFullYear(), wkSun.getMonth(), wkSun.getDate() + 6));
         const nxtWkStart = toStr(new Date(wkSun.getFullYear(), wkSun.getMonth(), wkSun.getDate() + 7));
         const nxtWkEnd   = toStr(new Date(wkSun.getFullYear(), wkSun.getMonth(), wkSun.getDate() + 13));
+        // 지난주(직전 일~토) 범위 — 이 주에 걸친 지난 일정만 투명 처리
         const prevWkStart = toStr(new Date(wkSun.getFullYear(), wkSun.getMonth(), wkSun.getDate() - 7));
         const prevWkEnd   = toStr(new Date(wkSun.getFullYear(), wkSun.getMonth(), wkSun.getDate() - 1));
         const today = todayStr();
+
+        // ── 월을 주 단위 배열로 구성 ──
+        // ★ 전월 일정도 계속 볼 수 있도록, 이번 달 1일 기준 최소 2주(14일) 전부터 그리드 시작
+        //   (일요일 정렬을 위해 추가로 주 시작요일까지 보정 → 결과적으로 2~3주 전월분이 항상 표시됨)
         const firstOfMonth = new Date(y, m, 1);
         const gridStartRaw = new Date(firstOfMonth); gridStartRaw.setDate(firstOfMonth.getDate() - 14);
         const gridStart = new Date(gridStartRaw); gridStart.setDate(gridStartRaw.getDate() - gridStart.getDay());
         const lastOfMonth = new Date(y, m + 1, 0);
         const gridEnd = new Date(lastOfMonth); gridEnd.setDate(lastOfMonth.getDate() + (6 - lastOfMonth.getDay()));
+
         const weeks = [];
         let week = [];
         for (let dt = new Date(gridStart); dt <= gridEnd; dt.setDate(dt.getDate() + 1)) {
@@ -1404,7 +1281,9 @@
             if (week.length === 7) { weeks.push(week); week = []; }
         }
         if (week.length) weeks.push(week);
+
         weeks.forEach(wk => {
+            // 주 크기 결정: 이번주 100% / 다음주 60% / 나머지 30%
             let wkClass = 'wk-other';
             for (const cell of wk) {
                 if (cell.ds >= curWkStart && cell.ds <= curWkEnd) { wkClass = 'wk-cur'; break; }
@@ -1413,266 +1292,119 @@
             let cells = '';
             wk.forEach(cell => {
                 const isToday = cell.ds === today;
-                const _w = dowOf(cell.ds);
-                const _hName = holidayName(cell.ds);
-                const _nonwork = (_w === 0 || _w === 6 || !!_hName);
+                const dow = new Date(cell.ds + 'T00:00:00').getDay();
+                const hName = holidayName(cell.ds);
+                // 비근무일 클래스 결정 (공휴일 우선 → 일요일 → 토요일)
+                let dayCls = '';
+                if (hName)          dayCls = 'holiday-cell';
+                else if (dow === 0) dayCls = 'sun-cell';
+                else if (dow === 6) dayCls = 'sat-cell';
+                const nonWork = !!hName || dow === 0 || dow === 6;   // 공휴일·토·일
                 let evs = '';
                 activities
-                    .filter(a => !a.deleted && a.showOnCal && a.startDate && a.dueDate && cell.ds >= a.startDate && cell.ds <= a.dueDate)
+                    .filter(a => {
+                        if (a.deleted || !a.showOnCal) return false;
+                        if (a.category === '정기회의') return false;   // 정기회의는 아래에서 발생일로 별도 처리
+                        if (!a.startDate || !a.dueDate) return false;
+                        if (!(cell.ds >= a.startDate && cell.ds <= a.dueDate)) return false;
+                        // 비근무일에는 기간형(여러 날 걸친) 일정은 숨기고, 그날 단독 등록만 표시
+                        if (nonWork) {
+                            const singleDay = a.startDate === a.dueDate;   // 당일 단독 일정
+                            if (!singleDay) return false;
+                        }
+                        return true;
+                    })
                     .sort((a, b) => sortKey(a).localeCompare(sortKey(b)))
                     .forEach(a => {
                         const timeLabel  = (a.category === '회의' && a.meetingTime) ? `${a.meetingTime} ` : '';
                         const placeLabel = (a.category === '회의' && a.meetingPlace && a.meetingPlace !== '추후지정') ? ` @${a.meetingPlace}` : '';
-                        const col = colorForPjt(a.project);
+                        const col = mColors[managers.indexOf(a.manager)] || '#888';
+                        // 지난주(직전 주) 칸에 그려지는 지난 일정만 투명 처리
                         const inPrevWk = cell.ds >= prevWkStart && cell.ds <= prevWkEnd;
                         const pastCls = (a.dueDate < today && inPrevWk) ? 'past' : (a.status === 'done' ? 'done-ev' : '');
                         const msCls   = a.milestone ? 'milestone-ev' : '';
                         const msStar  = a.milestone ? '<span class="ms-star">★</span> ' : '';
-                        evs += `<div class="cal-event ${pastCls} ${msCls}" style="background:${col}" title="[${escapeHtml(a.project||UNCLASSIFIED)}${a.manager ? ' · '+escapeHtml(a.manager):''}] ${escapeHtml(a.content)}${placeLabel}${a.memo ? ' 📎'+escapeHtml(a.memo):''}">${msStar}${timeLabel}${escapeHtml(a.content)}</div>`;
+                        evs += `<div class="cal-event ${pastCls} ${msCls}" style="background:${col}" title="[${a.manager}] ${a.content}${placeLabel}${a.memo ? ' 📎' + a.memo : ''}">${msStar}${timeLabel}${a.content}</div>`;
                     });
-                const _dateColor = (_w === 0 || _hName) ? 'color:#cf1322;' : (_w === 6 ? 'color:#1a5bbf;' : '');
-                const _holLabel = _hName ? `<div class="cal-holiday" title="${escapeHtml(_hName)}">${escapeHtml(_hName)}</div>` : '';
-                cells += `<div class="cal-cell ${isToday ? 'today-cell' : ''} ${cell.inMonth ? '' : 'other-month'} ${_nonwork ? 'nonworking' : ''}"><b style="${_dateColor}">${cell.d}</b>${_holLabel}${evs}</div>`;
+                // ── 정기회의: 이 셀 날짜가 발생일이면 표시 (비근무일이어도 정기회의는 표시) ──
+                activities
+                    .filter(a => !a.deleted && a.showOnCal && a.category === '정기회의' && a.status === 'active')
+                    .forEach(a => {
+                        const occ = recurOccurrences(a, cell.ds, cell.ds);
+                        if (!occ.length) return;
+                        const col = mColors[managers.indexOf(a.manager)] || '#888';
+                        const tLabel = a.meetingTime ? `${a.meetingTime} ` : '';
+                        const pLabel = (a.meetingPlace && a.meetingPlace !== '추후지정') ? ` @${a.meetingPlace}` : '';
+                        evs += `<div class="cal-event" style="background:${col}; border:1px dashed rgba(255,255,255,0.7);" title="[정기회의] ${a.content}${pLabel}">🔁${tLabel}${a.content}</div>`;
+                    });
+                const holLabel = hName ? `<span class="holiday-label" title="${hName}">${hName}</span>` : '';
+                cells += `<div class="cal-cell ${isToday ? 'today-cell' : ''} ${dayCls} ${cell.inMonth ? '' : 'other-month'}"><b>${cell.d}</b>${holLabel}${evs}</div>`;
             });
             html += `<div class="cal-week ${wkClass}">${cells}</div>`;
         });
         wrap.innerHTML = html;
     }
+
     window.changeMonth = (v) => { curDate.setMonth(curDate.getMonth() + v); renderCalendar(); };
-
-    // ── 주간보고 ──
-    function buildWeeklyReport() {
-        const tw = getWeekRange(0);
-        const today = todayStr();
-        const names = pjtNames();
-        const map = {};
-        activities
-            .filter(a => !a.deleted && a.startDate && a.dueDate && a.status === 'active'
-                      && a.dueDate >= today && overlaps(a.startDate, a.dueDate, tw.monStr, tw.sunStr))
-            .sort((a, b) => sortKey(a).localeCompare(sortKey(b)))
-            .forEach(a => {
-                const pjt = (a.project && names.indexOf(a.project) >= 0) ? a.project : (a.project || UNCLASSIFIED);
-                const rt  = reportTypes.includes(normRT(a.reportType)) ? normRT(a.reportType) : '진행';
-                if (!map[pjt]) map[pjt] = { '진행':[], '요약보고':[], '주요업무수행':[] };
-                map[pjt][rt].push(a);
-            });
-        const orderedPjts = names.filter(p => map[p]).concat(Object.keys(map).filter(p => names.indexOf(p) < 0));
-        return { tw, map, orderedPjts };
-    }
-    function actLine(a) {
-        const mgr = a.manager ? `[${a.manager}] ` : '';
-        const ms  = a.milestone ? '★ ' : '';
-        const mt  = (a.category === '회의' && a.meetingTime) ? ` (${a.meetingTime}${a.meetingPlace && a.meetingPlace!=='추후지정' ? ' @'+a.meetingPlace : ''})` : '';
-        return `${ms}${mgr}${a.content}${mt}`;
-    }
-    window.openReport = () => {
-        const { tw, map, orderedPjts } = buildWeeklyReport();
-        document.getElementById('report-week').innerText = tw.label;
-        const body = document.getElementById('report-body');
-        if (!orderedPjts.length) {
-            body.innerHTML = '<div style="text-align:center;color:#aaa;padding:30px;">이번 주에 해당하는 진행중 일정이 없습니다.</div>';
-        } else {
-            let rows = '';
-            orderedPjts.forEach(pjt => {
-                reportTypes.forEach((rt, ri) => {
-                    const list = map[pjt][rt];
-                    const cell = list.length ? `<ul>${list.map(a => `<li>${escapeHtml(actLine(a))}</li>`).join('')}</ul>` : `<span class="report-empty">—</span>`;
-                    rows += `<tr>
-                        ${ri === 0 ? `<td class="pjt-cell" rowspan="${reportTypes.length}">${escapeHtml(pjt)}</td>` : ''}
-                        <td class="gubun-cell">${rt}</td>
-                        <td class="content-cell">${cell}</td>
-                    </tr>`;
-                });
-            });
-            body.innerHTML = `<table class="report-table">
-                <thead><tr><th style="width:130px;">PJT명</th><th style="width:110px;">업무구분</th><th>금주 (${tw.label})</th></tr></thead>
-                <tbody>${rows}</tbody></table>`;
-        }
-        document.getElementById('report-modal').style.display = 'block';
-        document.getElementById('report-overlay').style.display = 'block';
-    };
-    window.closeReport = () => {
-        document.getElementById('report-modal').style.display = 'none';
-        document.getElementById('report-overlay').style.display = 'none';
-    };
-
-    // ── 엑셀 Export ──
-    function XLSX() { return window.XLSX; }
-    window.exportExcel = () => {
-        if (!XLSX()) { alert("엑셀 라이브러리 로드 실패. 인터넷 연결을 확인하세요."); return; }
-        const teamName = projectsMeta[currentPid]?.name || '팀';
-        const header = ['PJT','담당자','업무구분','카테고리','내용','시작일','종료일','마일스톤','상태','회의시간','장소','메모'];
-        const rows = [header];
-        activities.filter(a => !a.deleted).sort((a,b)=>sortKey(a).localeCompare(sortKey(b))).forEach(a => {
-            rows.push([
-                a.project || '', a.manager || '', a.reportType || '진행', a.category || '',
-                a.content || '', a.startDate || '', a.dueDate || '',
-                a.milestone ? 'Y' : '', a.status === 'done' ? '완료' : '진행중',
-                a.meetingTime || '', a.meetingPlace || '', a.memo || ''
-            ]);
-        });
-        const wb = XLSX().utils.book_new();
-        const ws1 = XLSX().utils.aoa_to_sheet(rows);
-        ws1['!cols'] = [{wch:16},{wch:14},{wch:10},{wch:8},{wch:40},{wch:12},{wch:12},{wch:8},{wch:8},{wch:8},{wch:8},{wch:30}];
-        XLSX().utils.book_append_sheet(wb, ws1, '일정원본');
-        const { tw, map, orderedPjts } = buildWeeklyReport();
-        const rRows = [['PJT명','업무구분',`금주 내용 (${tw.label})`]];
-        orderedPjts.forEach(pjt => reportTypes.forEach(rt => rRows.push([pjt, rt, map[pjt][rt].map(actLine).join('\n')])));
-        if (orderedPjts.length === 0) rRows.push(['(해당 없음)','','']);
-        const ws2 = XLSX().utils.aoa_to_sheet(rRows);
-        ws2['!cols'] = [{wch:18},{wch:12},{wch:60}];
-        XLSX().utils.book_append_sheet(wb, ws2, '주간보고');
-        const fname = `${teamName}_주간업무_${todayStr()}.xlsx`;
-        XLSX().writeFile(wb, fname);
-        showToast(`⬇ 엑셀 저장: ${fname}`);
-    };
-    window.exportReportExcel = () => {
-        if (!XLSX()) { alert("엑셀 라이브러리 로드 실패."); return; }
-        const teamName = projectsMeta[currentPid]?.name || '팀';
-        const { tw, map, orderedPjts } = buildWeeklyReport();
-        const rRows = [['PJT명','업무구분',`금주 내용 (${tw.label})`]];
-        orderedPjts.forEach(pjt => reportTypes.forEach(rt => rRows.push([pjt, rt, map[pjt][rt].map(actLine).join('\n')])));
-        if (!orderedPjts.length) rRows.push(['(해당 없음)','','']);
-        const wb = XLSX().utils.book_new();
-        const ws = XLSX().utils.aoa_to_sheet(rRows);
-        ws['!cols'] = [{wch:18},{wch:12},{wch:60}];
-        XLSX().utils.book_append_sheet(wb, ws, '주간보고');
-        XLSX().writeFile(wb, `${teamName}_주간보고_${todayStr()}.xlsx`);
-    };
-
-    // ── 엑셀 Import ──
-    function normDate(v) {
-        if (v === null || v === undefined || v === '') return '';
-        if (v instanceof Date) return toStr(v);
-        if (typeof v === 'number') { const d = new Date(Math.round((v - 25569) * 86400 * 1000)); return toStr(new Date(d.getFullYear(), d.getMonth(), d.getDate())); }
-        const s = String(v).trim();
-        const m = s.match(/(\d{4})[.\-\/\s]+(\d{1,2})[.\-\/\s]+(\d{1,2})/);
-        if (m) return `${m[1]}-${String(m[2]).padStart(2,'0')}-${String(m[3]).padStart(2,'0')}`;
-        return s;
-    }
-    window.importExcel = (event) => {
-        const file = event.target.files[0];
-        if (!file) return;
-        if (!XLSX()) { alert("엑셀 라이브러리 로드 실패."); return; }
-        if (!currentPid) { alert("팀이 선택되지 않았습니다."); return; }
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            try {
-                const wb = XLSX().read(new Uint8Array(e.target.result), { type: 'array', cellDates: true });
-                const sheetName = wb.SheetNames.includes('일정원본') ? '일정원본' : wb.SheetNames[0];
-                const ws = wb.Sheets[sheetName];
-                const data = XLSX().utils.sheet_to_json(ws, { header: 1, defval: '' });
-                if (!data.length) { alert("빈 시트입니다."); return; }
-                const head = data[0].map(h => String(h).trim());
-                const col = (name) => head.indexOf(name);
-                const ci = {
-                    project: col('PJT'), manager: col('담당자'), report: col('업무구분'),
-                    category: col('카테고리'), content: col('내용'), start: col('시작일'),
-                    due: col('종료일'), milestone: col('마일스톤'), status: col('상태'),
-                    mtime: col('회의시간'), mplace: col('장소'), memo: col('메모')
-                };
-                if (ci.content < 0 || ci.start < 0) { alert("헤더에 '내용','시작일' 열이 필요합니다.\n(엑셀 내보내기로 받은 '일정원본' 시트 양식을 사용하세요.)"); return; }
-                const parsed = [];
-                const newMgrs = new Set();
-                const pjtAssign = {};   // pjt명 → 담당자 Set (import로 자동 배정)
-                for (let r = 1; r < data.length; r++) {
-                    const row = data[r];
-                    const content = String(row[ci.content] ?? '').trim();
-                    const start = normDate(row[ci.start]);
-                    if (!content || !start) continue;
-                    let category = (ci.category >= 0 && String(row[ci.category]).trim()) ? String(row[ci.category]).trim() : '일상';
-                    if (!cats.includes(category)) category = '일상';
-                    let due = ci.due >= 0 ? normDate(row[ci.due]) : '';
-                    if (!due) due = start;
-                    const project = ci.project >= 0 ? String(row[ci.project] ?? '').trim() : '';
-                    const mgrRaw  = ci.manager >= 0 ? String(row[ci.manager] ?? '').trim() : '';
-                    const mgrNames = (mgrRaw === '전원') ? [] : mgrRaw.split(',').map(s => s.trim()).filter(Boolean);
-                    const manager = (mgrRaw === '전원') ? '전원' : mgrNames.join(', ');
-                    const rawRep  = normRT(String(row[ci.report] ?? '').trim());
-                    const report  = (ci.report >= 0 && reportTypes.includes(rawRep)) ? rawRep : '진행';
-                    const payload = {
-                        project, manager, reportType: report, category,
-                        content, startDate: start, dueDate: due < start ? start : due,
-                        status: (ci.status >= 0 && String(row[ci.status]).includes('완료')) ? 'done' : 'active',
-                        milestone: ci.milestone >= 0 && /^(Y|y|1|true|O|o|●|★)/.test(String(row[ci.milestone]).trim()),
-                        showOnCal: true, createdAt: new Date().toISOString(), createdBy: currentUser || '엑셀가져오기'
-                    };
-                    if (category === '회의') {
-                        if (ci.mtime >= 0)  payload.meetingTime  = String(row[ci.mtime] ?? '').trim();
-                        if (ci.mplace >= 0) payload.meetingPlace = String(row[ci.mplace] ?? '').trim() || '추후지정';
-                    }
-                    if (ci.memo >= 0 && String(row[ci.memo] ?? '').trim()) payload.memo = String(row[ci.memo]).trim();
-                    mgrNames.forEach(n => { if (managers.indexOf(n) < 0) newMgrs.add(n); });
-                    if (project) { pjtAssign[project] = pjtAssign[project] || new Set(); mgrNames.forEach(n => pjtAssign[project].add(n)); }
-                    parsed.push(payload);
-                }
-                if (!parsed.length) { alert("가져올 유효한 행이 없습니다.\n('내용'과 '시작일'이 있는 행만 가져옵니다.)"); return; }
-                const existingNames = pjtNames();
-                const newPjtNames = Object.keys(pjtAssign).filter(p => existingNames.indexOf(p) < 0);
-                let msg = `총 ${parsed.length}건의 일정을 현재 팀에 '추가'합니다.\n(기존 데이터는 삭제되지 않습니다)`;
-                if (newPjtNames.length) msg += `\n\n신규 PJT 자동 등록: ${newPjtNames.join(', ')}`;
-                if (newMgrs.size)       msg += `\n신규 담당자 자동 등록: ${[...newMgrs].join(', ')}`;
-                if (!confirm(msg)) return;
-                // members 병합
-                const nextMembers = managers.concat([...newMgrs]);
-                // pjts 병합 (기존 + 신규, 각 PJT에 import 담당자 배정)
-                const nextPjts = pjts.map(p => {
-                    const add = pjtAssign[p.name] ? [...pjtAssign[p.name]] : [];
-                    const merged = Array.from(new Set((p.members || []).concat(add))).filter(Boolean);
-                    return { name: p.name, members: merged };
-                });
-                newPjtNames.forEach(n => nextPjts.push({ name: n, members: [...pjtAssign[n]].filter(Boolean) }));
-                Promise.resolve(update(ref(db, `${ROOT}/${currentPid}`), { members: nextMembers, pjts: nextPjts }))
-                    .then(() => { parsed.forEach(p => push(actRef, p)); showToast(`⬆ ${parsed.length}건 가져오기 완료`); alert(`✅ ${parsed.length}건을 가져왔습니다.`); })
-                    .catch(err => alert("명단 저장 실패: " + err.message));
-            } catch (err) {
-                alert("엑셀 읽기 실패: " + err.message);
-            } finally {
-                event.target.value = '';
-            }
-        };
-        reader.readAsArrayBuffer(file);
-    };
 
     // ── 회의 30분 전 알림 ──
     const NOTIFIED_KEY = 'utm_notified_meetings';
     let notified = new Set(JSON.parse(localStorage.getItem(NOTIFIED_KEY) || '[]'));
+
     function saveNotified() {
+        // 오늘 키만 보관 (localStorage 비대화 방지)
         const today = todayStr();
         const arr = [...notified].filter(k => k.endsWith(today));
         notified = new Set(arr);
         localStorage.setItem(NOTIFIED_KEY, JSON.stringify(arr));
     }
+
     function checkMeetings() {
         const now   = new Date();
         const today = todayStr();
-        activities
-            .filter(a => !a.deleted && a.category === '회의' && a.status === 'active' && a.startDate === today && a.meetingTime)
-            .forEach(a => {
+        // 일반 회의 + 정기회의(오늘 발생분)를 모두 대상으로
+        const targets = activities.filter(a => {
+            if (a.deleted || a.status !== 'active' || !a.meetingTime) return false;
+            if (a.category === '회의') return a.startDate === today;
+            if (a.category === '정기회의') return recurOccurrences(a, today, today).length > 0;
+            return false;
+        });
+        targets.forEach(a => {
                 const [h, mi] = a.meetingTime.split(':').map(Number);
                 const mt = new Date(); mt.setHours(h, mi, 0, 0);
                 const diffMin = (mt - now) / 60000;
                 const key = `${a.id}_${today}`;
-                if (diffMin > 0 && diffMin <= 30 && !notified.has(key)) { notified.add(key); saveNotified(); showMeetingPopup(a, Math.round(diffMin)); }
+                if (diffMin > 0 && diffMin <= 30 && !notified.has(key)) {
+                    notified.add(key);
+                    saveNotified();
+                    showMeetingPopup(a, Math.round(diffMin));
+                }
             });
     }
+
     function showMeetingPopup(a, minLeft) {
         const place = (a.meetingPlace && a.meetingPlace !== '추후지정') ? `📍 ${a.meetingPlace}` : '📍 장소 추후지정';
         const memoLine = a.memo ? `<br>📎 ${linkifyMemo(a.memo)}` : '';
         document.getElementById('mp-body').innerHTML =
-            `<b>${escapeHtml(a.content)}</b><br>⏰ ${a.meetingTime} 시작 (약 ${minLeft}분 후)<br>${place}<br>🗂 ${escapeHtml(a.project||'')} ${a.manager ? '· 👤 '+escapeHtml(a.manager) : ''}${memoLine}`;
+            `<b>${a.content}</b><br>⏰ ${a.meetingTime} 시작 (약 ${minLeft}분 후)<br>${place}<br>👤 ${a.manager}${memoLine}`;
         document.getElementById('meet-popup').style.display = 'block';
+
+        // 브라우저 알림 (권한 허용 시 — 다른 탭 작업 중에도 OS 알림 표시)
         if ('Notification' in window && Notification.permission === 'granted') {
-            new Notification('🔔 회의 30분 전', { body: `${a.meetingTime} ${a.content} (${a.meetingPlace || '장소 추후지정'})` });
+            new Notification('🔔 회의 30분 전', {
+                body: `${a.meetingTime} ${a.content} (${a.meetingPlace || '장소 추후지정'})`
+            });
         }
+        // 짧은 알림음
         try {
             const ctx = new (window.AudioContext || window.webkitAudioContext)();
             const osc = ctx.createOscillator(), g = ctx.createGain();
             osc.connect(g); g.connect(ctx.destination);
             osc.frequency.value = 880; g.gain.value = 0.08;
             osc.start(); osc.stop(ctx.currentTime + 0.25);
-        } catch (e) {}
+        } catch (e) { /* 무음 환경 무시 */ }
     }
+
     window.enableNotify = () => {
         if (!('Notification' in window)) { alert('이 브라우저는 알림을 지원하지 않습니다.'); return; }
         Notification.requestPermission().then(updateBellBtn);
@@ -1680,17 +1412,26 @@
     function updateUserBadge() {
         const el = document.getElementById('user-badge');
         if (!el) return;
-        el.textContent = currentUser ? `👤 ${currentUser}${currentUser === curAdmin ? ' (관리자)' : ''}` : '👤 사용자 미설정';
+        el.textContent = currentUser ? `👤 ${currentUser}${currentUser === ADMIN ? ' (관리자)' : ''}` : '👤 사용자 미설정';
     }
     window.changeUser = () => { currentUser = promptUserSelect(); updateUserBadge(); };
+
     function updateBellBtn() {
         const btn = document.getElementById('bell-btn');
-        if ('Notification' in window && Notification.permission === 'granted') { btn.textContent = '🔔 알림 ON'; btn.classList.add('on'); }
+        if ('Notification' in window && Notification.permission === 'granted') {
+            btn.textContent = '🔔 알림 ON';
+            btn.classList.add('on');
+        }
     }
-    setInterval(checkMeetings, 30000);
+
+    setInterval(checkMeetings, 30000);   // 30초마다 회의 알림 점검
     setInterval(() => { document.getElementById('clock').innerText = new Date().toLocaleString('ko-KR'); }, 1000);
+
+    // 날짜가 바뀌면(자정 경과) 자동 재계산 — 게시판/캘린더 최신 유지
     let lastDay = todayStr();
-    setInterval(() => { if (todayStr() !== lastDay) { lastDay = todayStr(); location.reload(); } }, 60000);
+    setInterval(() => {
+        if (todayStr() !== lastDay) { lastDay = todayStr(); location.reload(); }
+    }, 60000);
 </script>
 </body>
 </html>
